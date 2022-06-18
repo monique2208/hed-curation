@@ -1,0 +1,50 @@
+[{"split_events": {"alert_phase": {"onset_source": 0,
+                                   "duration": 1,
+                                   "copy_columns": ["trial_type"],
+                                   "move_columns": []
+                                    },
+                    "encoding_phase": {"onset_source": 1,
+                                       "duration": 1,
+                                       "copy_columns": ["trial_type"],
+                                       "move_columns": []
+                                       },
+                    "retention_phase": {"onset_source": 2,
+                                        "duration": 2,
+                                        "copy_columns": ["trial_type"],
+                                        "move_columns": []
+                                        },
+                    "test_phase": {"onset_source": 4,
+                                   "duration": 0,
+                                   "copy_columns": ["trial_type"],
+                                   "move_columns": []
+                                   },
+                    "response_phase": {"onset_source": 5,
+                                       "duration": 1,
+                                       "copy_columns": ["trial_type"],
+                                       "move_columns": []
+                                       },
+                    "response": {"onset_source": ["response_time", 4],
+                                 "duration": 0,
+                                 "copy_columns": [],
+                                 "move_columns": ["response_accuracy", "response_hand"]
+                                },
+                    "remove_trial_parent": true
+                  }
+  },
+	{"derive_columns": {"event_type": {"source_columns": ["trial_type", "event_type"],
+                                     "mapping": [["encoding_phase_active", ["active_change", "encoding_phase"]],
+                                                 ["encoding_phase_active", ["active_nochange", "encoding_phase"]],
+                                                 ["encoding_phase_passive", ["passive", "encoding_phase"]],
+                                                 ["retention_phase_active", ["active_change", "retention_phase"]],
+                                                 ["retention_phase_active", ["active_nochange", "retention_phase"]],
+                                                 ["retention_phase_passive", ["passive", "retention_phase"]],
+                                                 ["test_phase_active_change", ["active_change", "test_phase"]],
+                                                 ["test_phase_active_nochange", ["active_nochange", "test_phase"]],
+                                                 ["test_phase_passive", ["passive", "test_phase"]]
+                                                 ],
+                                     "delete_source": false}
+                      }
+   },
+ {"remove": ["trial_type", "response_time"]},
+ {"order": ["onset", "duration", "event_type", "response_hand", "response_accuracy", "trial_number"]}
+]
