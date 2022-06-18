@@ -1,0 +1,59 @@
+[{"derive_columns": {"match_side": {"source_columns": ["response_accuracy", "response_hand"],
+                                    "mapping": [["left", ["correct", "left"]],
+                                                ["left", ["incorrect", "right"]],
+                                                ["right", ["correct", "right"]],
+                                                ["right", ["incorrect", "left"]]],
+                                    "delete_source": false},
+                      "ori_match_side": {"source_columns": ["response_accuracy", "response_hand", "ori_match"],
+                                         "mapping": [["vertical_left", ["correct", "left", "vertical"]],
+                                                     ["horizontal_left", ["correct", "left", "horizontal"]],
+                                                     ["vertical_left", ["incorrect", "right", "vertical"]],
+                                                     ["horizontal_left", ["incorrect", "right", "horizontal"]],
+                                                     ["vertical_right", ["correct", "right", "vertical"]],
+                                                     ["horizontal_right", ["correct", "right", "horizontal"]],
+                                                     ["vertical_right", ["incorrect", "left", "vertical"]],
+                                                     ["horizontal_right", ["incorrect", "left", "vertical"]]
+                                                     ],
+                                         "delete_source": false},
+                      "emo_match_side": {"source_columns": ["response_accuracy", "response_hand", "emo_match"],
+                                         "mapping": [["fear_left", ["correct", "left", "fear"]],
+                                                     ["anger_left", ["correct", "left", "anger"]],
+                                                     ["fear_left", ["incorrect", "right", "fear"]],
+                                                     ["anger_left", ["incorrect", "right", "anger"]],
+                                                     ["fear_right", ["correct", "right", "fear"]],
+                                                     ["anger_right", ["correct", "right", "anger"]],
+                                                     ["fear_right", ["incorrect", "left", "fear"]],
+                                                     ["anger_right", ["incorrect", "left", "anger"]]
+                                                     ],
+                                         "delete_source": false}
+                      }
+   },
+ {"split_events": {"stimulus": {"onset_source": 0,
+                                "duration": "duration",
+                                "copy_columns": ["trial_type", "ori_match", "sex",
+                                                 "ethn_target", "ethn_match",
+                                                 "ethn_distractor", "emo_match",
+                                                 "emo_match_side", "ori_match_side",
+                                                 "match_side"],
+                                "move_columns": []
+                                },
+                  "response": {"onset_source": "response_time",
+                               "duration": 0,
+                               "copy_columns": ["response_hand", "response_accuracy"],
+                               "move_columns": []
+                              },
+                  "remove_trial_parent": true
+                  }
+  },
+ {"derive_columns": {"event_type": {"source_columns": ["trial_type", "event_type"],
+                                   "mapping": [["control_stimulus", ["control", "stimulus"]],
+                                               ["emotion_stimulus", ["emotion", "stimulus"]],
+                                               ["response", ["control", "response"]],
+                                               ["response", ["emotion", "response"]]],
+                                   "delete_source": true}
+                     }
+ },
+ {"remove": ["trial_type", "ethn_target", "ethn_distractor", "match_side", "ori_match", "emo_match"]},
+ {"rename": {"ethn_match":"ethn"}},
+ {"order": ["onset", "duration", "event_type", "response_hand", "response_accuracy", "ori_match_side", "emo_match_side", "sex", "ethn", "trial_number"]}
+]
