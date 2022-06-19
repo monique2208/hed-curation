@@ -2,7 +2,7 @@
 
 %% Set up the specifics for your dataset
 
-rootPath = 'G:/Sternberg/SternbergWorkingPhaseTwo';
+rootPath = '/XXX/SternbergWorkingPhaseTwo';
 setname = '';
 log_name = 'sternberg_12_import_events_log.txt';
 renameColumns = {'event_type', 'type'; 'onset', 'latency'};

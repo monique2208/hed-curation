@@ -10,7 +10,7 @@
 %% Set up the specifics for your dataset
 
 % Sternberg requires reordering of channels as well as reset of urchanlocs.
-rootPath = 'G:/Sternberg/SternbergWorkingPhaseTwo';
+rootPath = '/XXX/SternbergWorkingPhaseTwo';
 log_name = 'sternberg_12_fix_eeglab_channels_log.txt';
 resetUrchans = true;  % If true copies chanlocs into urchanlocs
 reorderChans = true;  % If true reorders channels to be BIDS order

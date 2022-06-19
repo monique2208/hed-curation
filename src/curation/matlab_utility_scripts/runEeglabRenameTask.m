@@ -2,7 +2,7 @@
 % You must provide the root path to your dataset directory tree and excude directories to skip
 
 %% Set up the specifics for your dataset
-rootPath = 'G:/Sternberg/SternbergWorking';
+rootPath = '/XXX/SternbergWorking';
 sratePath = [rootPath filesep 'code'];
 excludeDirs = {'sourcedata', 'code', 'stimuli'};
 namePrefix = '';

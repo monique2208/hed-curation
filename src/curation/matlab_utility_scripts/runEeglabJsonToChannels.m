@@ -1,21 +1,21 @@
 %% This script dumps the channel labels to a JSON file.
 
 %% Set up the specifics for your dataset
-%rootPath = 'G:/Sternberg/SternbergWorking';
-%rootPath = 'G:/AuditoryOddball/AuditoryOddballWorking';
-%rootPath = 'G:/GoNogo/GoNogoWorking';
-%rootPath = 'G:/ImaginedEmotion/ImaginedEmotionWorking';
-%rootPath = 'G:/AttentionShift/AttentionShiftWorking';
-rootPath = 'f:/ARLBidsStart/AdvancedGuardDutyWorking';
-%rootPath = 'f:/ARLBidsStart/AuditoryCueingWorking';
-%rootPath = 'f:/ARLBidsStart/BaselineDrivingWorking';
-%rootPath = 'f:/ARLBidsStart/BasicGuardDutyWorking';
-%rootPath = 'f:/ARLBidsStart/CalibrationDrivingWorking';
-%rootPath = 'f:/ARLBidsStart/MindWanderingWorking';
-%rootPath = 'f:/ARLBidsStart/RSVPBaselineWorking';
-%rootPath = 'f:/ARLBidsStart/RSVPExpertiseWorking';
-%rootPath = 'f:/ARLBidsStart/SpeedControlWorking';
-%rootPath = 'f:/ARLBidsStart/TrafficComplexityWorking';
+%rootPath = '/XXX/SternbergWorking';
+%rootPath = '/XXX/AuditoryOddballWorking';
+%rootPath = '/XXX/GoNogoWorking';
+%rootPath = '/XXX/ImaginedEmotionWorking';
+%rootPath = '/XXX/AttentionShiftWorking';
+rootPath = '/XXX/AdvancedGuardDutyWorking';
+%rootPath = '/XXX/AuditoryCueingWorking';
+%rootPath = '/XXX/BaselineDrivingWorking';
+%rootPath = '/XXX/BasicGuardDutyWorking';
+%rootPath = '/XXX/CalibrationDrivingWorking';
+%rootPath = '/XXX/MindWanderingWorking';
+%rootPath = '/XXX/RSVPBaselineWorking';
+%rootPath = '/XXX/RSVPExpertiseWorking';
+%rootPath = '/XXX/SpeedControlWorking';
+%rootPath = '/XXX/TrafficComplexityWorking';
 sratePath = [rootPath filesep 'code'];
 excludeDirs = {'sourcedata', 'code', 'stimuli'};
 namePrefix = '';
