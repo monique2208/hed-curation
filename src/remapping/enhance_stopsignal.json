@@ -3,7 +3,7 @@
                             "copy_columns": [],
                             "move_columns": ["trial_type"]
                             },
-                   "stop signal": {"onset_source": "stop_signal_delay",
+                   "stop signal": {"onset_source": ["stop_signal_delay", 0.5083],
                                    "duration": 0.5,
                                    "copy_columns": [],
                                    "move_columns": []

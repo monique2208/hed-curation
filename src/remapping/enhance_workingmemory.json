@@ -41,8 +41,7 @@
                                                  ["test_phase_active_change", ["active_change", "test_phase"]],
                                                  ["test_phase_active_nochange", ["active_nochange", "test_phase"]],
                                                  ["test_phase_passive", ["passive", "test_phase"]]
-                                                 ],
-                                     "delete_source": false}
+                                                 ]}
                       }
    },
  {"remove": ["trial_type", "response_time"]},
