@@ -1,0 +1,119 @@
+{
+   "Name":"leftvsrighthands",
+   "BIDSModelVersion":"1.0.0",
+   "Description":"Test difference go signal press with left versus right hand",
+   "Input":{
+      "task":"stopsignal"
+   },
+   "Nodes":[
+      {
+         "Level":"run",
+         "Name":"subject",
+         "GroupBy":["subject"],
+         "Transformations":{
+            "Transformer": "pybids-transforms-v1",
+            "Instructions": [
+               {
+                  "Name":"Convolve",
+                  "Input":["go_right", "go_left"],
+                  "Model":"spm"
+               }
+            ]
+         },
+         "Model":{
+            "X":["go_right", "go_left", "trans_*", "rot_*", 1],
+            "Type": "glm",
+            "Options": {
+               "HighPassFilterCutoffHz": 0.008
+            },
+            "Software": {
+               "SPM": {
+                  "whitening": "AR(1)"
+               }
+            }
+         },
+         "DummyContrasts": {
+            "Conditions": ["go_left", "go_right"],
+            "Test":"t"
+         },
+         "Contrasts": [
+            {
+               "Name":"left_bt_right",
+               "ConditionList": ["go_right", "go_left"],
+               "Weights":[1, -1],
+               "Test":"t"
+            },
+            {
+               "Name":"right_bt_left",
+               "ConditionList": ["go_left", "go_right"],
+               "Weights":[-1, 1],
+               "Test":"t"
+            },
+            {
+               "Name":"task_vs_baseline",
+               "ConditionList":["go_left", "go_right"],
+               "Weights":[0.5, 0.5],
+               "Test":"t"
+            },
+            {
+                "Name": "Movement-related effects",
+                    "ConditionList": ["trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z"],
+                    "Weights": [
+                        [1,0,0,0,0,0],
+                        [0,1,0,0,0,0],
+                        [0,0,1,0,0,0],
+                        [0,0,0,1,0,0],
+                        [0,0,0,0,1,0],
+                        [0,0,0,0,0,1]
+                    ],
+                    "Test": "F"
+                }
+         ]
+      },
+      {
+         "Level": "dataset",
+         "Name": "t-test",
+         "GroupBy": ["contrast"],
+         "Model": {
+            "X": [1],
+            "Type": "glm"
+         },
+         "DummyContrasts": {
+            "Test":"t"
+         }
+      },
+      {
+         "Level": "dataset",
+         "Name": "F-test",
+         "GroupBy": [],
+         "Model":{
+            "X": ["go_left", "go_right"],
+            "Type": "glm"
+         },
+         "Contrasts":[
+            {
+               "Name": "any_go_trial",
+               "ConditionList": ["go_left", "go_right"],
+               "Weights": [[1, 0], [0, 1]],
+               "Test": "F"
+            }
+         ]
+      }
+   ],
+   "Edges":[
+      {
+         "Source":"subject",
+         "Destination":"t-test",
+         "Filter":{
+            "contrast":["task_vs_baseline", "left_bt_right", "right_bt_left"]
+         }
+      },
+      {
+         "Source":"subject",
+         "Destination":"F-test",
+         "Filter":{
+            "contrast":["go_left", "go_right"]
+         }
+      }
+   ]
+}

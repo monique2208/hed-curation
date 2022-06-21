@@ -10,7 +10,10 @@
                 ]
             },
             "stop signal": {
-                "onset_source": "stop_signal_delay",
+                "onset_source": [
+                    "stop_signal_delay",
+                    0.5083
+                ],
                 "duration": 0.5,
                 "copy_columns": [],
                 "move_columns": []
