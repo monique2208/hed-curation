@@ -1,0 +1,9 @@
+
+docker run --rm -it -v D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21:/bids:ro -v D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21\derivatives\fmriprep:/prep:ro -v  D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21\derivatives:/out -v D:\scratch:/scratch -v D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21\models\model-leftright_smdl.json:/model:ro poldracklab/fitlins:0.10.1 /bids /out dataset -d /prep -w /scratch -m /model
+
+docker run --rm -it -v D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test:/bids:ro -v D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test\derivatives\fmriprep:/prep:ro -v D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test\derivatives:/out -v D:\Scratch:/scratch -v D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test\models\model-emomatching_smdl.json:/model:ro poldracklab/fitlins:0.10.1 /bids /out dataset -d /prep -w /scratch -m /model
+
+fitlins D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test\derivatives dataset -d D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test\derivatives\fmriprep:/prep -w D:\Scratch -m D:\Gebruikers\Monique\Documenten\ds002790sm-hed\ds002790sm-test\models\model-stopsignal_smdl.json
+
+fitlins D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21 D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21\derivatives dataset -d D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21\derivatives\fmriprep -w D:\scratch -m D:\Gebruikers\Monique\Documenten\DataRepositories\soccer21\models\model-leftright_smdl.json
+

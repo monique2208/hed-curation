@@ -5,31 +5,15 @@ import json
 import pandas as pd
 import enhance_event
 
-parser = argparse.ArgumentParser(
-    description="""Converts event files based on a json file specifying
-    operations.""")
-
-parser.add_argument(
-    "-d",
-    dest="bids_dir",
-    help="")
-
-parser.add_argument(
-    "-t",
-    dest="task_name",
-    help="")
-
-parser.add_argument(
-    "-o",
-    dest="operations_json_path",
-    help="")
-
+parser = argparse.ArgumentParser(description="""Converts event files based on a json file specifying operations.""")
+parser.add_argument("-d", dest="bids_dir", help="")
+parser.add_argument("-t", dest="task_name", help="The name of the task to make this enhancement.")
+parser.add_argument("-o", dest="operations_json_path", help="")
 args = parser.parse_args()
 
 
 def find_task_files(bids_dir, task):
-    return [path for path in Path(bids_dir).rglob('*_events.tsv') if task in
-            str(path)]
+    return [path for path in Path(bids_dir).rglob('*_events.tsv') if task in str(path)]
 
 
 def load_operations(json_path):
