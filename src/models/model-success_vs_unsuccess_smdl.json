@@ -1,7 +1,7 @@
 {
-   "Name":"leftvsrighthands",
+   "Name":"success_vs_unsuccess",
    "BIDSModelVersion":"1.0.0",
-   "Description":"Test difference go signal press with left versus right hand",
+   "Description":"Test differences between successful stops and unsuccesful stops",
    "Input":{
       "task":"stopsignal"
    },
@@ -15,36 +15,36 @@
             "Instructions": [
                {
                   "Name":"Convolve",
-                  "Input":["go_right", "go_left"],
+                  "Input":["go","successful_stop", "unsuccessful_stop"],
                   "Model":"spm"
                }
             ]
          },
          "Model":{
-            "X":["go_right", "go_left", "trans_*", "rot_*", 1],
+            "X":["go","successful_stop", "unsuccessful_stop", "trans_*", "rot_*", 1],
             "Type": "glm"
          },
          "DummyContrasts": {
-            "Conditions": ["go_left", "go_right"],
+            "Conditions": ["go","successful_stop", "unsuccessful_stop"],
             "Test":"t"
          },
          "Contrasts": [
             {
-               "Name":"left_bigger_than_right",
+               "Name":"successful_greater_than_unsuccessful",
+               "ConditionList": ["successful", "unsuccessful"],
+               "Weights":[1, -1],
+               "Test":"t"
+            },
+            {
+               "Name":"stop_vs_go",
                "ConditionList": ["go_left", "go_right"],
                "Weights":[1, -1],
                "Test":"t"
             },
             {
-               "Name":"right_bigger_than_left",
-               "ConditionList": ["go_left", "go_right"],
-               "Weights":[-1, 1],
-               "Test":"t"
-            },
-            {
-               "Name":"go_trial_vs_baseline",
-               "ConditionList":["go_left", "go_right"],
-               "Weights":[0.5, 0.5],
+               "Name":"task_vs_baseline",
+               "ConditionList":["go_left", "go_right", "successful_stop", "unsuccessful_stop"],
+               "Weights":[0.25, 0.25, 0.25, 0.25],
                "Test":"t"
             },
             {
@@ -97,7 +97,7 @@
          "Source":"subject",
          "Destination":"t-test",
          "Filter":{
-            "contrast":["any_go_trial", "left_bigger_than_right", "right_bigger_than_left"]
+            "contrast":["task_vs_baseline", "left_bt_right", "right_bt_left"]
          }
       },
       {

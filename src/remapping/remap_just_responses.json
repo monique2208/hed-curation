@@ -1,0 +1,23 @@
+[
+    {
+        "split_events": {
+            "response": {
+                "onset_source": "response_time",
+                "duration": 0.1,
+                "copy_columns": [],
+                "move_columns": [
+                    "response_hand",
+                    "response_accuracy",
+                    "sex"
+                ]
+            },
+            "remove_trial_parent": true
+        }
+    },
+    {
+        "remove": [
+            "stop_signal_delay",
+            "response_time"
+        ]
+    }
+]

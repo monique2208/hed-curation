@@ -1,7 +1,7 @@
 {
-   "Name":"leftvsrighthands",
+   "Name":"remap_leftvsright",
    "BIDSModelVersion":"1.0.0",
-   "Description":"Test difference go signal press with left versus right hand",
+   "Description":"Test difference go signal press with left versus right hand timed at press.",
    "Input":{
       "task":"stopsignal"
    },
@@ -14,36 +14,40 @@
             "Transformer": "pybids-transforms-v1",
             "Instructions": [
                {
+                  "Name": "Factor",
+                  "Input": ["response_hand"]
+               },
+               {
                   "Name":"Convolve",
-                  "Input":["go_right", "go_left"],
+                  "Input":["response_hand.left", "response_hand.right"],
                   "Model":"spm"
                }
             ]
          },
          "Model":{
-            "X":["go_right", "go_left", "trans_*", "rot_*", 1],
+            "X":["response_hand.left", "response_hand.right", "trans_*", "rot_*", 1],
             "Type": "glm"
          },
          "DummyContrasts": {
-            "Conditions": ["go_left", "go_right"],
+            "Conditions": ["response_hand.left", "response_hand.right"],
             "Test":"t"
          },
          "Contrasts": [
             {
                "Name":"left_bigger_than_right",
-               "ConditionList": ["go_left", "go_right"],
+               "ConditionList": ["response_hand.left", "response_hand.right"],
                "Weights":[1, -1],
                "Test":"t"
             },
             {
                "Name":"right_bigger_than_left",
-               "ConditionList": ["go_left", "go_right"],
+               "ConditionList": ["response_hand.left", "response_hand.right"],
                "Weights":[-1, 1],
                "Test":"t"
             },
             {
-               "Name":"go_trial_vs_baseline",
-               "ConditionList":["go_left", "go_right"],
+               "Name":"response_vs_baseline",
+               "ConditionList":["response_hand.left", "response_hand.right"],
                "Weights":[0.5, 0.5],
                "Test":"t"
             },
@@ -79,13 +83,13 @@
          "Name": "F-test",
          "GroupBy": [],
          "Model":{
-            "X": ["go_left", "go_right"],
+            "X": ["response_hand.left", "response_hand.right"],
             "Type": "glm"
          },
          "Contrasts":[
             {
-               "Name": "any_go_trial",
-               "ConditionList": ["go_left", "go_right"],
+               "Name": "any_response",
+               "ConditionList": ["response_hand.left", "response_hand.right"],
                "Weights": [[1, 0], [0, 1]],
                "Test": "F"
             }

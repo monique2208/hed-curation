@@ -14,6 +14,20 @@
             "Transformer": "pybids-transforms-v1",
             "Instructions": [
                {
+                  "Name": "Factor",
+                  "Input": ["trial_type", "response_hand", "sex"]
+               },
+               {
+                  "Name": "And",
+                  "Input": ["trial_type.go", "response_hand.left"],
+                  "Output": "go_left"
+               },
+               {
+                  "Name": "And",
+                  "Input": ["trial_type.go", "response_hand.right"],
+                  "Output": "go_right"
+               },
+               {
                   "Name":"Convolve",
                   "Input":["go_right", "go_left"],
                   "Model":"spm"
