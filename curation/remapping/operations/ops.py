@@ -1,13 +1,14 @@
 import pandas as pd
 import numpy as np
 import copy
-from operations.util import base
-from operations.util import structure
+import curation.remapping.operations.base as base
+import curation.remapping.operations.structure as structure
+# from curation.remapping.operations.base import get_indices, is_number, split_consecutive_parts, tuple_to_range
+# from curation.remapping.operations.structure import add_column_value, add_summed_events
 
 
 def run_operations(df, operations_list):
-    '''Takes an events dataframe and a list of dictionaries and runs a series
-    of operations as specified in the dictionaries.'''
+    """ Runs operations from list on a dataframe."""
 
     # string to functions
     dispatch = {'split_events': split_trial_events,
@@ -24,9 +25,7 @@ def run_operations(df, operations_list):
     for operation_dict in operations_list:
         operation_key = list(operation_dict.keys())[0]
         # deepcopy for pop in split events
-        df = dispatch[operation_key](
-            df, copy.deepcopy(operation_dict[operation_key])
-                                     )
+        df = dispatch[operation_key](df, copy.deepcopy(operation_dict[operation_key]))
         print('FINISHED %s' % operation_key)
         print(df.head())
         print('')
@@ -46,8 +45,7 @@ def merge_consecutive_events(df, merge_dict):
 
 
 def derive_columns(df, derive_dict):
-    '''Add a new column based on values in other columns as specified by an
-    event dictionary.'''
+    """ Add column based on other columns as specified by dictionary."""
 
     for column in derive_dict:
         new_column = pd.Series(np.nan, index=range(len(df)))
@@ -60,27 +58,27 @@ def derive_columns(df, derive_dict):
 
         for comb in df.groupby(
                 derive_dict[column]['source_columns']).groups.items():
-            for map in derive_dict[column]['mapping']:
+            for derive_map in derive_dict[column]['mapping']:
                 # for each key value pair, check if equal to a specific mapping
-                if ((set(comb[combination_index]) == set(map[mapping_source]))
-                        or (comb[combination_index] == map[mapping_source][0])):
-                    entry = map[mapping_value]
+                if ((set(comb[combination_index]) == set(derive_map[mapping_source]))
+                        or (comb[combination_index] == derive_map[mapping_source][0])):
+                    entry = derive_map[mapping_value]
                     new_column.loc[comb[indexes_index]] = entry
 
         new_column = new_column.dropna(axis=0)
         if column not in df.columns:
-            df[column] = np.nan
+            df[column] = 'n/a'
         df.loc[new_column.index.tolist(), column] = new_column
     return df
 
 
 def remove_columns(df, remove_dict):
-    '''Remove columns as specified in event dictionary'''
+    """ Removes columns as specified by dictionary."""
     return df.drop(remove_dict, axis=1)
 
 
 def split_trial_events(df, split_dict):
-    '''Splits trial row into events based on an event dictionary.'''
+    """ Splits trial row into events based on dictionary. """
 
     df['trial_number'] = df.index+1
 
@@ -97,18 +95,15 @@ def split_trial_events(df, split_dict):
         print('')
 
         if base.is_number(split_dict[event]['onset_source']):
-            add_events['onset'] = (df['onset'] +
-                                   split_dict[event]['onset_source'])
+            add_events['onset'] = (df['onset'] + split_dict[event]['onset_source'])
 
         elif isinstance(split_dict[event]['onset_source'], str):
-            add_events['onset'] = (df['onset'] +
-                                   df[split_dict[event]['onset_source']])
+            add_events['onset'] = (df['onset'] + df[split_dict[event]['onset_source']])
             # remove events if there is no onset (=no response)
             add_events = add_events.dropna(axis='rows', subset=['onset'])
 
         elif isinstance(split_dict[event]['onset_source'], list):
-            add_events['onset'] = (df['onset'] +
-                                   df[split_dict[event]['onset_source'][0]] +
+            add_events['onset'] = (df['onset'] + df[split_dict[event]['onset_source'][0]] +
                                    split_dict[event]['onset_source'][1])
 
             add_events = add_events.dropna(axis='rows', subset=['onset'])
@@ -126,7 +121,7 @@ def split_trial_events(df, split_dict):
         if len(split_dict[event]['move_columns']) > 0:
             for column in split_dict[event]['move_columns']:
                 add_events[column] = df[column]
-                df[column] = np.NaN
+                df[column] = 'n/a'
 
         add_events['event_type'] = event
         new_events = new_events.append(add_events)
@@ -141,17 +136,18 @@ def split_trial_events(df, split_dict):
 
 
 def prep_events(df):
-    df = df.replace('n/a', np.NaN)
+    # df = df.replace('n/a', np.NaN)
+    df = df.replace('n/a', 'n/a')
     return df
 
 
 def rename_columns(df, rename_dict):
-    '''Rename columns as specified in event dictionary'''
+    """ Renames columns as specified in event dictionary. """
     return df.rename(columns=rename_dict)
 
 
 def order_columns(df, order_dict):
-    '''Reorder columns as specified in event dictionary'''
+    """ Reorders columns as specified in event dictionary. """
     return df[order_dict]
 
 
@@ -161,15 +157,9 @@ def add_structure(df, structure_dict):
 
     for element in structure_dict:
         process = structure_dict[element]
-        indices = base.tuple_to_range(
-            base.get_indices(df,
-                             process['marker_column'],
-                             process['marker_list']))
-        column = (process['new_column'] if 'new_column' in
-                  process else
-                  process['marker_column'])
-        value = (process['label'] if 'label' in process else
-                 element)
+        indices = base.tuple_to_range(base.get_indices(df, process['marker_column'], process['marker_list']))
+        column = (process['new_column'] if 'new_column' in process else process['marker_column'])
+        value = (process['label'] if 'label' in process else element)
         number = process['number']
         df = dispatch[process.pop('type')](df, indices, column, value, number)
     return df
@@ -177,18 +167,10 @@ def add_structure(df, structure_dict):
 
 def add_trial_numbers(df, trial_dict):
     df['trial'] = np.nan
-    block_indices = base.tuple_to_range(base.get_indices(
-        df,
-        trial_dict['block']['marker_column'],
-        trial_dict['block']['marker_list']
-                                                         )
-                                        )
-    trial_indices = base.tuple_to_range(base.get_indices(
-        df,
-        trial_dict['trial']['marker_column'],
-        trial_dict['trial']['marker_list']
-                                                         )
-                                        )
+    block_indices = base.tuple_to_range(base.get_indices(df, trial_dict['block']['marker_column'],
+                                                         trial_dict['block']['marker_list']))
+    trial_indices = base.tuple_to_range(base.get_indices(df, trial_dict['trial']['marker_column'],
+                                                         trial_dict['trial']['marker_list']))
 
     block_separated = []
     for block_sublist in block_indices:

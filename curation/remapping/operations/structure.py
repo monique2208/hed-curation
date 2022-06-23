@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from . import base
+from curation.remapping.operations import base
 
 
 def add_summed_events(df, indexes, column, value, number):

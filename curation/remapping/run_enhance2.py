@@ -1,29 +1,12 @@
-import os
 import argparse
-from pathlib import Path
-import json
 import pandas as pd
-import enhance_event
-
-
-
-def find_task_files(bids_dir, task):
-    return [path for path in Path(bids_dir).rglob('*_events.tsv') if task in str(path)]
-
-
-def load_operations(json_path):
-    with open(json_path, encoding='utf-8') as f:
-        operations_dict = json.load(f)
-    return operations_dict
-
-
-def rename_and_save_new(df, path):
-    os.rename(path, str(path)[:-4] + '_orig' + str(path)[-4:])
-    df.to_csv(path, sep='\t', index=False)
-
+# import curation.remapping.operations.ops as ops
+from curation.remapping.operations.bidsfiles import find_task_files, load_operations, rename_and_save_new
+# import .operations.bidsfiles
+from curation.remapping.operations.ops import run_operations
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="""Converts event files based on a json file specifying operations.""")
+    parser = argparse.ArgumentParser(description="Converts event files based on a json file specifying operations.")
     parser.add_argument("-d", dest="bids_dir", help="")
     parser.add_argument("-t", dest="task_name", help="The name of the task to make this enhancement.")
     parser.add_argument("-o", dest="operations_json_path", help="")
@@ -38,5 +21,5 @@ if __name__ == '__main__':
         events = pd.read_csv(events_file_path, sep='\t')
 
         print('Restructuring %s' % events_file_path)
-        events = enhance_event.enhance_events(events, operations_dict)
+        events = run_operations(events, operations_dict)
         rename_and_save_new(events, events_file_path)

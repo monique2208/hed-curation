@@ -101,14 +101,14 @@
          "Source":"subject",
          "Destination":"t-test",
          "Filter":{
-            "contrast":["any_go_trial", "left_bigger_than_right", "right_bigger_than_left"]
+            "contrast":["any_response", "left_bigger_than_right", "right_bigger_than_left"]
          }
       },
       {
          "Source":"subject",
          "Destination":"F-test",
          "Filter":{
-            "contrast":["go_left", "go_right"]
+            "contrast":["response_hand.left", "response_hand.right"]
          }
       }
    ]

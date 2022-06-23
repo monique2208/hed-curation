@@ -6,6 +6,7 @@
                 "duration": 0.1,
                 "copy_columns": [],
                 "move_columns": [
+                    "trial_type",
                     "response_hand",
                     "response_accuracy",
                     "sex"

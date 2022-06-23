@@ -1,7 +1,6 @@
 import argparse
 import pandas as pd
-from operations.operations import run_operations
-import bids
+from operations.ops import run_operations
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -27,7 +26,7 @@ if __name__ == '__main__':
     for events_file_path in all_events_paths:
         print('Loading file: %s' % events_file_path)
         print('')
-        events = pd.read_csv(events_file_path, sep='\t')
+        events = pd.read_csv(events_file_path, sep='\t', index=False)
 
         print('Restructuring %s' % events_file_path)
         events = run_operations(events, operations_dict)

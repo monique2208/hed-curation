@@ -1,6 +1,6 @@
 def is_number(variable):
-    '''Checks if a variable is either a float of int.'''
-    return ((isinstance(variable, int) or isinstance(variable, float)))
+    """ Checks if a variable is either a float of int."""
+    return isinstance(variable, int) or isinstance(variable, float)
 
 
 def match_label(lst, label):

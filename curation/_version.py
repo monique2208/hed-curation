@@ -45,7 +45,7 @@ def get_config():
     cfg.style = "pep440"
     cfg.tag_prefix = ""
     cfg.parentdir_prefix = "hed-curation-"
-    cfg.versionfile_source = "src/_version.py"
+    cfg.versionfile_source = "src/curation/_version.py"
     cfg.verbose = False
     return cfg
 

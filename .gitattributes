@@ -1,1 +1,2 @@
 src/_version.py export-subst
+src/curation/_version.py export-subst
