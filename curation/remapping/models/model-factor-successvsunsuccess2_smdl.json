@@ -1,67 +1,72 @@
 {
-   "Name":"remap_leftvsright",
+   "Name":"stopcomparison",
    "BIDSModelVersion":"1.0.0",
-   "Description":"Test difference go signal press with left versus right hand timed at press.",
+   "Description":"Test difference successful stop versus unsuccessful stop.",
    "Input":{
-      "task": ["stopsignal"]
+      "task":"stopsignal"
    },
    "Nodes":[
       {
-         "Level": "Run",
+         "Level":"run",
          "Name":"subject",
          "GroupBy":["subject"],
          "Transformations":{
             "Transformer": "pybids-transforms-v1",
             "Instructions": [
                {
-                  "Name": "DropNA",
-                  "Input": "response_accuracy"
-               },
-               {
-                  "Name": "DropNA",
-                  "Input": "response_hand"
-               },
-               {
                   "Name": "Factor",
-                  "Input": ["response_hand", "response_accuracy"]
+                  "Input": ["trial_type"]
                },
                {
                   "Name": "And",
-                  "Input": ["response_accuracy.correct", "response_hand.left"],
-                  "Output": "correct_left"
+                  "Input": ["trial_type.go", "trial_type.go"],
+                  "Output": "go_trial"
                },
                {
                   "Name": "And",
-                  "Input": ["response_accuracy.correct", "response_hand.right"],
-                  "Output": "correct_right"
+                  "Input": ["trial_type.succesful_stop", "trial_type.succesful_stop"],
+                  "Output": "successful_stop"
+               },
+               {
+                  "Name": "And",
+                  "Input": ["trial_type.unsuccesful_stop", "trial_type.unsuccesful_stop"],
+                  "Output": "unsuccessful_stop"
                },
                {
                   "Name":"Convolve",
-                  "Input":["correct_left", "correct_right"],
+                  "Input":["go_trial", "successful_stop", "unsuccessful_stop"],
                   "Model":"spm"
                }
             ]
          },
          "Model":{
-            "X":["correct_left", "correct_right", "trans_*", "rot_*", 1],
+            "X":["go_trial", "successful_stop", "unsuccessful_stop", "trans_*", "rot_*", 1],
             "Type": "glm"
+         },
+         "DummyContrasts": {
+            "Conditions": [
+               "go_trial",
+               "successful_stop",
+               "unsuccessful_stop"
+            ],
+            "Test": "t"
          },
          "Contrasts": [
             {
-               "Name":"left_bigger_than_right",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name":"success_bigger_than_unsuccess",
+               "ConditionList": ["successful_stop", "unsuccessful_stop"],
                "Weights":[1, -1],
                "Test":"t"
             },
             {
-               "Name":"right_bigger_than_left",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name":"unsuccess_bigger_than_success",
+               "ConditionList": ["successful_stop", "unsuccessful_stop"],
                "Weights":[-1, 1],
                "Test":"t"
             },
             {
-               "Name":"response_vs_baseline",
-               "ConditionList":["correct_left", "correct_right"],
+               "Name":"stop_trial_vs_baseline",
+               "ConditionList":["successful_stop", "unsuccessful_stop"],
                "Weights":[0.5, 0.5],
                "Test":"t"
             },
@@ -81,7 +86,7 @@
          ]
       },
       {
-         "Level": "Dataset",
+         "Level": "dataset",
          "Name": "t-test",
          "GroupBy": ["contrast"],
          "Model": {
@@ -89,22 +94,21 @@
             "Type": "glm"
          },
          "DummyContrasts": {
-            "Contrasts": ["left_bigger_than_right", "right_bigger_than_left", "response_vs_baseline"],
-            "Test":  "t"
+            "Test": "t"
          }
       },
       {
-         "Level": "Dataset",
+         "Level": "dataset",
          "Name": "F-test",
          "GroupBy": [],
          "Model":{
-            "X": ["correct_left", "correct_right"],
+            "X": ["successful_stop", "unsuccessful_stop"],
             "Type": "glm"
          },
          "Contrasts":[
             {
-               "Name": "any_response",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name": "success_vs_unsuccess",
+               "ConditionList": ["successful_stop", "unsuccessful_stop"],
                "Weights": [[1, 0], [0, 1]],
                "Test": "F"
             }
@@ -116,14 +120,15 @@
          "Source":"subject",
          "Destination":"t-test",
          "Filter":{
-            "contrast":["any_response", "left_bigger_than_right", "right_bigger_than_left"]
+            "contrast":[
+               "stop_trial_vs_baseline", "success_bigger_than_unsuccess", "unsuccess_bigger_than_success"]
          }
       },
       {
          "Source":"subject",
          "Destination":"F-test",
          "Filter":{
-            "contrast":["correct_left", "correct_right"]
+            "contrast":["successful_stop", "unsuccessful_stop"]
          }
       }
    ]

@@ -1,0 +1,158 @@
+{
+   "Name":"successvsunsuccess",
+   "BIDSModelVersion":"1.0.0",
+   "Description":"Test difference successful stop versus unsuccessful stop.",
+   "Input":{
+      "task":"stopsignal"
+   },
+   "Nodes":[
+      {
+         "Level":"Run",
+         "Name":"subject",
+         "GroupBy":["subject"],
+         "Transformations":{
+            "Transformer": "pybids-transforms-v1",
+            "Instructions": [
+               {
+                  "Name": "Factor",
+                  "Input": ["trial_type", "response_hand", "sex"]
+               },
+               {
+                  "Name": "And",
+                  "Input": ["trial_type.go", "trial_type.go"],
+                  "Output": "go_trial"
+               },
+               {
+                  "Name": "And",
+                  "Input": ["trial_type.succesful_stop", "trial_type.succesful_stop"],
+                  "Output": "successful_stop"
+               },
+               {
+                  "Name": "And",
+                  "Input": ["trial_type.unsuccesful_stop", "trial_type.unsuccesful_stop"],
+                  "Output": "unsuccessful_stop"
+               },
+               {
+                  "Name":"Convolve",
+                  "Input":["go_trial", "successful_stop", "unsuccessful_stop"],
+                  "Model":"spm"
+               }
+            ]
+         },
+         "Model":{
+            "X":["go_trial", "successful_stop", "unsuccessful_stop", "trans_*", "rot_*", 1],
+            "Type": "glm"
+         },
+         "Contrasts": [
+            {
+               "Name":"go_bigger_than_success",
+               "ConditionList": ["go_trial", "successful_stop"],
+               "Weights":[1, -1],
+               "Test":"t"
+            },
+            {
+               "Name":"success_bigger_than_go",
+               "ConditionList": ["go_trial", "successful_stop"],
+               "Weights":[-1, 1],
+               "Test":"t"
+            },
+            {
+               "Name":"go_bigger_than_unsuccess",
+               "ConditionList": ["go_trial", "unsuccessful_stop"],
+               "Weights":[1, -1],
+               "Test":"t"
+            },
+            {
+               "Name":"unsuccess_bigger_than_go",
+               "ConditionList": ["go_trial", "unsuccessful_stop"],
+               "Weights":[-1, 1],
+               "Test":"t"
+            },
+            {
+               "Name":"success_bigger_than_unsuccess",
+               "ConditionList": ["successful_stop", "unsuccessful_stop"],
+               "Weights":[1, -1],
+               "Test":"t"
+            },
+            {
+               "Name":"unsuccess_bigger_than_success",
+               "ConditionList": ["successful_stop", "unsuccessful_stop"],
+               "Weights":[-1, 1],
+               "Test":"t"
+            },
+            {
+               "Name":"stop_trial_vs_baseline",
+               "ConditionList":["successful_stop", "unsuccessful_stop"],
+               "Weights":[0.5, 0.5],
+               "Test":"t"
+            },
+            {
+                "Name": "Movement-related effects",
+                    "ConditionList": ["trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z"],
+                    "Weights": [
+                        [1,0,0,0,0,0],
+                        [0,1,0,0,0,0],
+                        [0,0,1,0,0,0],
+                        [0,0,0,1,0,0],
+                        [0,0,0,0,1,0],
+                        [0,0,0,0,0,1]
+                    ],
+                    "Test": "F"
+                }
+         ]
+      },
+      {
+         "Level": "Dataset",
+         "Name": "t-test",
+         "GroupBy": ["contrast"],
+         "Model": {
+            "X": [1],
+            "Type": "glm"
+         },
+         "DummyContrasts": {
+            "Test": "t"
+         }
+      },
+      {
+         "Level": "Dataset",
+         "Name": "F-test",
+         "GroupBy": [],
+         "Model":{
+            "X": ["go_trial", "successful_stop", "unsuccessful_stop"],
+            "Type": "glm"
+         },
+         "Contrasts":[
+            {
+               "Name": "any_stop_trial",
+               "ConditionList": ["successful_stop", "unsuccessful_stop"],
+               "Weights": [[1, 0], [0, 1]],
+               "Test": "F"
+            }
+         ]
+      }
+   ],
+   "Edges":[
+      {
+         "Source":"subject",
+         "Destination":"t-test",
+         "Filter":{
+            "contrast":[
+               "any_stop_trial",
+               "go_bigger_than_success",
+               "success_bigger_than_go",
+               "go_bigger_than_unsuccess",
+               "unsuccess_bigger_than_go",
+               "success_bigger_than_unsuccess",
+               "unsuccess_bigger_than_success"
+            ]
+         }
+      },
+      {
+         "Source":"subject",
+         "Destination":"F-test",
+         "Filter":{
+            "contrast":["successful_stop", "unsuccessful_stop"]
+         }
+      }
+   ]
+}

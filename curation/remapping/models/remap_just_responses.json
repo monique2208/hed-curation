@@ -3,7 +3,7 @@
         "split_events": {
             "response": {
                 "onset_source": "response_time",
-                "duration": 0.1,
+                "duration": 0.2,
                 "copy_columns": [],
                 "move_columns": [
                     "trial_type",

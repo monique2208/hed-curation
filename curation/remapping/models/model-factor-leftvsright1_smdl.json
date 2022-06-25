@@ -1,67 +1,63 @@
 {
-   "Name":"remap_leftvsright",
+   "Name":"leftvsrighthands",
    "BIDSModelVersion":"1.0.0",
-   "Description":"Test difference go signal press with left versus right hand timed at press.",
+   "Description":"Test difference go signal press with left versus right hand",
    "Input":{
-      "task": ["stopsignal"]
+      "task":"stopsignal"
    },
    "Nodes":[
       {
-         "Level": "Run",
+         "Level":"run",
          "Name":"subject",
          "GroupBy":["subject"],
          "Transformations":{
             "Transformer": "pybids-transforms-v1",
             "Instructions": [
                {
-                  "Name": "DropNA",
-                  "Input": "response_accuracy"
-               },
-               {
-                  "Name": "DropNA",
-                  "Input": "response_hand"
-               },
-               {
                   "Name": "Factor",
-                  "Input": ["response_hand", "response_accuracy"]
+                  "Input": ["trial_type", "response_hand", "sex"]
                },
                {
                   "Name": "And",
-                  "Input": ["response_accuracy.correct", "response_hand.left"],
-                  "Output": "correct_left"
+                  "Input": ["trial_type.go", "response_hand.left"],
+                  "Output": "go_left"
                },
                {
                   "Name": "And",
-                  "Input": ["response_accuracy.correct", "response_hand.right"],
-                  "Output": "correct_right"
+                  "Input": ["trial_type.go", "response_hand.right"],
+                  "Output": "go_right"
                },
                {
                   "Name":"Convolve",
-                  "Input":["correct_left", "correct_right"],
+                  "Input":["go_right", "go_left"],
                   "Model":"spm"
                }
             ]
          },
          "Model":{
-            "X":["correct_left", "correct_right", "trans_*", "rot_*", 1],
+            "X":["go_right", "go_left", "trans_*", "rot_*", 1],
             "Type": "glm"
+         },
+         "DummyContrasts": {
+            "Conditions": ["go_left", "go_right"],
+            "Test":"t"
          },
          "Contrasts": [
             {
                "Name":"left_bigger_than_right",
-               "ConditionList": ["correct_left", "correct_right"],
+               "ConditionList": ["go_left", "go_right"],
                "Weights":[1, -1],
                "Test":"t"
             },
             {
                "Name":"right_bigger_than_left",
-               "ConditionList": ["correct_left", "correct_right"],
+               "ConditionList": ["go_left", "go_right"],
                "Weights":[-1, 1],
                "Test":"t"
             },
             {
-               "Name":"response_vs_baseline",
-               "ConditionList":["correct_left", "correct_right"],
+               "Name":"go_trial_vs_baseline",
+               "ConditionList":["go_left", "go_right"],
                "Weights":[0.5, 0.5],
                "Test":"t"
             },
@@ -81,7 +77,7 @@
          ]
       },
       {
-         "Level": "Dataset",
+         "Level": "dataset",
          "Name": "t-test",
          "GroupBy": ["contrast"],
          "Model": {
@@ -89,22 +85,21 @@
             "Type": "glm"
          },
          "DummyContrasts": {
-            "Contrasts": ["left_bigger_than_right", "right_bigger_than_left", "response_vs_baseline"],
-            "Test":  "t"
+            "Test":"t"
          }
       },
       {
-         "Level": "Dataset",
+         "Level": "dataset",
          "Name": "F-test",
          "GroupBy": [],
          "Model":{
-            "X": ["correct_left", "correct_right"],
+            "X": ["go_left", "go_right"],
             "Type": "glm"
          },
          "Contrasts":[
             {
-               "Name": "any_response",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name": "any_go_trial",
+               "ConditionList": ["go_left", "go_right"],
                "Weights": [[1, 0], [0, 1]],
                "Test": "F"
             }
@@ -116,14 +111,14 @@
          "Source":"subject",
          "Destination":"t-test",
          "Filter":{
-            "contrast":["any_response", "left_bigger_than_right", "right_bigger_than_left"]
+            "contrast":["any_go_trial", "left_bigger_than_right", "right_bigger_than_left"]
          }
       },
       {
          "Source":"subject",
          "Destination":"F-test",
          "Filter":{
-            "contrast":["correct_left", "correct_right"]
+            "contrast":["go_left", "go_right"]
          }
       }
    ]

@@ -18,7 +18,8 @@ def run_operations(df, operations_list):
                 'order': order_columns,
                 'merge_consecutive_events': merge_consecutive_events,
                 'add_structure': add_structure,
-                'trial_numbers': add_trial_numbers
+                'trial_numbers': add_trial_numbers,
+                'remove_rows': remove_rows
                 }
 
     df = prep_events(df)
@@ -93,20 +94,18 @@ def split_trial_events(df, split_dict):
         add_events = pd.DataFrame([], columns=df.columns)
         print('Adding event %s \n' % event)
         print('')
+        onsets = df['onset']
+        w = split_dict[event]['onset_source']
+        for onset in split_dict[event]['onset_source']:
+            if base.is_number(onset):
+                onsets = onsets + onset
+            elif isinstance(onset, str):
+                y = split_dict[event]
+                x = df[onset]
+                onsets = onsets + df[onset]
 
-        if base.is_number(split_dict[event]['onset_source']):
-            add_events['onset'] = (df['onset'] + split_dict[event]['onset_source'])
-
-        elif isinstance(split_dict[event]['onset_source'], str):
-            add_events['onset'] = (df['onset'] + df[split_dict[event]['onset_source']])
+        add_events['onset'] = onsets
             # remove events if there is no onset (=no response)
-            add_events = add_events.dropna(axis='rows', subset=['onset'])
-
-        elif isinstance(split_dict[event]['onset_source'], list):
-            add_events['onset'] = (df['onset'] + df[split_dict[event]['onset_source'][0]] +
-                                   split_dict[event]['onset_source'][1])
-
-            add_events = add_events.dropna(axis='rows', subset=['onset'])
 
         if base.is_number(split_dict[event]['duration']):
             add_events['duration'] = split_dict[event]['duration']
@@ -121,9 +120,9 @@ def split_trial_events(df, split_dict):
         if len(split_dict[event]['move_columns']) > 0:
             for column in split_dict[event]['move_columns']:
                 add_events[column] = df[column]
-                df[column] = 'n/a'
 
         add_events['event_type'] = event
+        add_events = add_events.dropna(axis='rows', subset=['onset'])
         new_events = new_events.append(add_events)
 
     df = df.append(new_events)
@@ -144,6 +143,15 @@ def prep_events(df):
 def rename_columns(df, rename_dict):
     """ Renames columns as specified in event dictionary. """
     return df.rename(columns=rename_dict)
+
+
+def remove_rows(df, remove_dict):
+    """ Removes rows with the values indicated in the columns. """
+
+    for column, drop_list in remove_dict.items():
+        for drop_val in drop_list:
+            df = df.loc[df[column] != drop_val]
+    return df
 
 
 def order_columns(df, order_dict):

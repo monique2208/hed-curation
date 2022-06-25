@@ -1,39 +1,29 @@
 [
     {
         "split_events": {
-            "n/a": {
-                "onset_source": 0,
+            "trial_start": {
+                "onset_source": [],
                 "duration": 4,
                 "copy_columns": [],
-                "move_columns": [
-                    "trial_type"
-                ]
+                "move_columns": ["trial_type", "sex", "response_hand", "response_accuracy"]
             },
             "stop_signal": {
-                "onset_source": [
-                    "stop_signal_delay",
-                    0.5083
-                ],
+                "onset_source": ["stop_signal_delay", 0.5083],
                 "duration": 0.5,
                 "copy_columns": [],
-                "move_columns": []
+                "move_columns": ["trial_type", "sex", "response_hand", "response_accuracy"]
             },
             "go_signal": {
-                "onset_source": 0,
+                "onset_source": [],
                 "duration": "duration",
                 "copy_columns": [],
-                "move_columns": [
-                    "sex"
-                ]
+                "move_columns": ["trial_type", "sex", "response_hand", "response_accuracy"]
             },
             "response": {
-                "onset_source": "response_time",
-                "duration": 0,
+                "onset_source": [0.5083, "response_time"],
+                "duration": 0.1,
                 "copy_columns": [],
-                "move_columns": [
-                    "response_hand",
-                    "response_accuracy"
-                ]
+                "move_columns": ["trial_type","sex", "response_hand", "response_accuracy"]
             },
             "remove_trial_parent": true
         }
@@ -43,6 +33,12 @@
             "stop_signal_delay",
             "response_time"
         ]
+    },
+    {
+        "remove_rows": {
+            "event_type": ["trial_start", "go_signal", "stop_signal", "n/a"],
+            "response_accuracy": ["n/a"]
+        }
     },
     {
         "order": [

@@ -1,16 +1,5 @@
-import os
 import argparse
-from pathlib import Path
-
-
-def find_task_files(bids_dir, task):
-    return [path for path in Path(bids_dir).rglob('*_events.tsv') if task
-            in str(path)]
-
-
-def remove_new_rename_old(path):
-    os.remove(path)
-    os.rename(str(path)[:-4] + '_orig' + str(path)[-4:], path)
+from curation.remapping.operations.bidsfiles import find_task_files, replace_new_with_old
 
 
 if __name__ == '__main__':
@@ -21,5 +10,11 @@ if __name__ == '__main__':
 
     all_events_path = find_task_files(args.bids_dir, args.task_name)
 
+    status = True
     for event_path in all_events_path:
-        remove_new_rename_old(event_path)
+        if not replace_new_with_old(event_path):
+            print(f"Replacement of {event_path} failed.")
+            status = False
+
+    if status:
+        print(f"The files were successfully replaced.")
