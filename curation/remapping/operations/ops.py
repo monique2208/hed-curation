@@ -13,9 +13,9 @@ def run_operations(df, operations_list):
     # string to functions
     dispatch = {'split_events': split_trial_events,
                 'derive_columns': derive_columns,
-                'rename': rename_columns,
-                'remove': remove_columns,
-                'order': order_columns,
+                'rename_columns': rename_columns,
+                'remove_columns': remove_columns,
+                'order_columns': order_columns,
                 'merge_consecutive_events': merge_consecutive_events,
                 'add_structure': add_structure,
                 'trial_numbers': add_trial_numbers,
