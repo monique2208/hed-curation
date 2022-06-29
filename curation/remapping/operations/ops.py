@@ -66,7 +66,7 @@ def derive_columns(df, derive_dict):
 
         new_column = new_column.dropna(axis=0)
         if column not in df.columns:
-            df[column] = 'n/a'
+            df[column] = np.nan
         df.loc[new_column.index.tolist(), column] = new_column
     return df
 
@@ -116,6 +116,7 @@ def split_trial_events(df, split_dict):
         if len(split_dict[event]['move_columns']) > 0:
             for column in split_dict[event]['move_columns']:
                 add_events[column] = df[column]
+                df[column] = np.nan
 
         add_events['event_type'] = event
         add_events = add_events.dropna(axis='rows', subset=['onset'])
@@ -131,8 +132,7 @@ def split_trial_events(df, split_dict):
 
 
 def prep_events(df):
-    # df = df.replace('n/a', np.NaN)
-    df = df.replace('n/a', 'n/a')
+    df = df.replace('n/a', np.nan)
     return df
 
 
