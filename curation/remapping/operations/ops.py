@@ -165,7 +165,8 @@ def add_structure(df, structure_dict):
         column = (process['new_column'] if 'new_column' in process else process['marker_column'])
         value = (process['label'] if 'label' in process else element)
         number = process['number']
-        df = dispatch[process.pop('type')](df, indices, column, value, number)
+        exclusive = process['exclusive']
+        df = dispatch[process.pop('type')](df, indices, column, value, number, exclusive)
     return df
 
 
