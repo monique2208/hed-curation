@@ -32,7 +32,7 @@ def replace_new_with_old(path):
         bool:  True if successful replacement.
 
     Notes:
-        The _orig file remains in place and can be deleted separately if all place all replacements are successful.
+        The _orig file remains in place and can be deleted separately if all replacements are successful.
 
     """
     old_path = str(path)[:-4] + '_orig' + str(path)[-4:]
