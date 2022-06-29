@@ -3,8 +3,6 @@ import numpy as np
 import copy
 import curation.remapping.operations.base as base
 import curation.remapping.operations.structure as structure
-# from curation.remapping.operations.base import get_indices, is_number, split_consecutive_parts, tuple_to_range
-# from curation.remapping.operations.structure import add_column_value, add_summed_events
 
 
 def run_operations(df, operations_list):
@@ -95,17 +93,15 @@ def split_trial_events(df, split_dict):
         print('Adding event %s \n' % event)
         print('')
         onsets = df['onset']
-        w = split_dict[event]['onset_source']
-        for onset in split_dict[event]['onset_source']:
-            if base.is_number(onset):
-                onsets = onsets + onset
-            elif isinstance(onset, str):
-                y = split_dict[event]
-                x = df[onset]
-                onsets = onsets + df[onset]
+        source_list = split_dict[event]['onset_source']
+        for source in source_list:
+            if base.is_number(source):
+                onsets = onsets + source
+            elif isinstance(source, str):
+                source_offsets = df[source]
+                onsets = onsets + source_offsets
 
         add_events['onset'] = onsets
-            # remove events if there is no onset (=no response)
 
         if base.is_number(split_dict[event]['duration']):
             add_events['duration'] = split_dict[event]['duration']
