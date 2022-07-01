@@ -3,10 +3,16 @@ import pandas as pd
 from curation.remapping.operations import base
 
 
-def add_summed_events(df, indexes, column, value, number, exclusive):
-    for ind, sublist in enumerate(indexes):
-        if exclusive:
-            sublist = sublist[1:]
+def add_summed_events(df, column, marker_dict, value_dict):
+
+    indices = base.tuple_to_range(
+        base.get_indices(df, marker_dict['column'], marker_dict['start_stop']),
+        marker_dict['inclusion'])
+
+    get_value = (base.return_value if value_dict['type'] == 'label'
+                 else base.match_label)
+
+    for ind, sublist in enumerate(indices):
         onset = df.loc[sublist[0], 'onset']
         duration = (df.loc[sublist[-1], 'onset'] -
                     df.loc[sublist[0], 'onset'])
@@ -15,24 +21,25 @@ def add_summed_events(df, indexes, column, value, number, exclusive):
                             columns=df.columns, index=[sublist[0]-0.5])
         line['onset'] = onset
         line['duration'] = duration
-        line[column] = (value if isinstance(value, str) else
-                        base.match_label(df.loc[sublist, column].tolist(),
-                                         value))
+        line[column] = get_value(df.loc[sublist,
+                                        marker_dict['column']].tolist(),
+                                 value_dict['content'])
         df = pd.concat([line, df])
 
     df = df.sort_index().reset_index(drop=True)
     return df
 
 
-def add_column_value(df, indexes, column, value, number, exclusive):
-    if number:
-        number_name = column + '_number'
-        df[number_name] = np.nan
-    for ind, lst in enumerate(indexes):
-        if exclusive:
-            lst = lst[1:]
-        label = ind + 1
-        df.loc[lst, column] = value
-        if number:
-            df.loc[lst, number_name] = label
+def add_column_value(df, column, marker_dict, value_dict):
+    indices = base.tuple_to_range(
+        base.get_indices(df, marker_dict['column'], marker_dict['start_stop']),
+        marker_dict['inclusion'])
+
+    get_value = (base.return_value if value_dict['type'] == 'label'
+                 else base.match_label)
+
+    for ind, sublist in enumerate(indices):
+        df.loc[sublist, column] = get_value(df.loc[sublist,
+                                            marker_dict['column']].tolist(),
+                                            value_dict['content'])
     return df

@@ -16,7 +16,7 @@ def run_operations(df, operations_list):
                 'order_columns': order_columns,
                 'merge_consecutive_events': merge_consecutive_events,
                 'add_structure': add_structure,
-                'trial_numbers': add_trial_numbers,
+                'add_numbers': add_numbers,
                 'remove_rows': remove_rows
                 }
 
@@ -156,38 +156,44 @@ def order_columns(df, order_dict):
 
 
 def add_structure(df, structure_dict):
-    dispatch = {'structure_column': structure.add_column_value,
-                'structure_event': structure.add_summed_events}
+    dispatch = {'column': structure.add_column_value,
+                'event': structure.add_summed_events}
 
     for element in structure_dict:
-        process = structure_dict[element]
-        indices = base.tuple_to_range(base.get_indices(df, process['marker_column'], process['marker_list']))
-        column = (process['new_column'] if 'new_column' in process else process['marker_column'])
-        value = (process['label'] if 'label' in process else element)
-        number = process['number']
-        exclusive = process['exclusive']
-        df = dispatch[process.pop('type')](df, indices, column, value, number, exclusive)
+        df = dispatch[element.pop('type')](df,
+                                           element['column'],
+                                           element['marker'],
+                                           element['value'])
     return df
 
 
-def add_trial_numbers(df, trial_dict):
-    df['trial'] = np.nan
-    block_indices = base.tuple_to_range(base.get_indices(df, trial_dict['block']['marker_column'],
-                                                         trial_dict['block']['marker_list']))
-    trial_indices = base.tuple_to_range(base.get_indices(df, trial_dict['trial']['marker_column'],
-                                                         trial_dict['trial']['marker_list']))
+def add_numbers(df, number_dict):
+    for element in number_dict:
+        process = number_dict[element]
 
-    block_separated = []
-    for block_sublist in block_indices:
-        new_block_list = []
-        for trial_sublist in trial_indices:
-            if trial_sublist[0] in block_sublist:
-                new_block_list.append(trial_sublist)
-        block_separated.append(new_block_list)
+        new_column = element + '_number'
+        df[new_column] = np.nan
 
-    for block in block_separated:
-        count = 0
-        for trial in block:
-            count += 1
-            df.loc[trial, 'trial'] = count
+        indices = base.tuple_to_range(
+            base.get_indices(df,
+                             process['marker']['column'],
+                             process['marker']['start_stop']),
+            process['marker']['inclusion'])
+
+        for ind, sublist in enumerate(indices):
+            df.loc[sublist, new_column] = ind + 1
+
+        within = process.get('within', False)
+        if within:
+            within_column = within + '_number'
+            parent_numbers = base.unique_non_null(df[within_column])
+            for number in parent_numbers:
+                if number > 1:
+                    first = (df.loc[df[within_column] ==
+                             number, new_column]).dropna().tolist()[0]
+                    first = first - 1
+                    df.loc[df[within_column] == number, new_column] = (
+                        df.loc[df[within_column] == number, new_column] - first
+                                                                       )
+
     return df
