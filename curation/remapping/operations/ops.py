@@ -79,8 +79,6 @@ def remove_columns(df, remove_dict):
 def split_trial_events(df, split_dict):
     """ Splits trial row into events based on dictionary. """
 
-    df['trial_number'] = df.index+1
-
     add_column = 'event_type'
     add_column_location = 3
     remove_trial_parent = split_dict.pop('remove_trial_parent')
@@ -152,6 +150,9 @@ def remove_rows(df, remove_dict):
 
 def order_columns(df, order_dict):
     """ Reorders columns as specified in event dictionary. """
+    if len(order_dict) != len(df.columns):
+        order_dict = (order_dict +
+                      [column for column in df.columns if column not in order_dict])
     return df[order_dict]
 
 
@@ -174,26 +175,30 @@ def add_numbers(df, number_dict):
         new_column = element + '_number'
         df[new_column] = np.nan
 
-        indices = base.tuple_to_range(
-            base.get_indices(df,
-                             process['marker']['column'],
-                             process['marker']['start_stop']),
-            process['marker']['inclusion'])
+        if isinstance(process, dict):
+            indices = base.tuple_to_range(
+                base.get_indices(df,
+                                 process['marker']['column'],
+                                 process['marker']['start_stop']),
+                process['marker']['inclusion'])
 
-        for ind, sublist in enumerate(indices):
-            df.loc[sublist, new_column] = ind + 1
+            for ind, sublist in enumerate(indices):
+                df.loc[sublist, new_column] = ind + 1
 
-        within = process.get('within', False)
-        if within:
-            within_column = within + '_number'
-            parent_numbers = base.unique_non_null(df[within_column])
-            for number in parent_numbers:
-                if number > 1:
-                    first = (df.loc[df[within_column] ==
-                             number, new_column]).dropna().tolist()[0]
-                    first = first - 1
-                    df.loc[df[within_column] == number, new_column] = (
-                        df.loc[df[within_column] == number, new_column] - first
-                                                                       )
+            within = process.get('within', False)
+            if within:
+                within_column = within + '_number'
+                parent_numbers = base.unique_non_null(df[within_column])
+                for number in parent_numbers:
+                    if number > 1:
+                        first = (df.loc[df[within_column] ==
+                                 number, new_column]).dropna().tolist()[0]
+                        first = first - 1
+                        df.loc[df[within_column] == number, new_column] = (
+                            df.loc[df[within_column] == number, new_column] -
+                            first)
+
+        if isinstance(process, str):
+            df[new_column] = df.index+1
 
     return df
