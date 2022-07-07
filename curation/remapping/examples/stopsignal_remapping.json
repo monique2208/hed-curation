@@ -1,0 +1,27 @@
+[{"add_numbers": {"trial": "row"}},
+ {"split_events": {"stop signal": {"onset_source": ["stop_signal_delay"],
+                                   "duration": 0.5,
+                                   "copy_columns": ["trial_number", "trial_type"],
+                                   "move_columns": []
+                                    },
+                   "go signal": {"onset_source": [0],
+                                 "duration": "duration",
+                                 "copy_columns": ["sex", "trial_number", "trial_type"],
+                                 "move_columns": []
+                                 },
+                   "trial": {"onset_source": [0],
+                                             "duration": 2.5,
+                                             "copy_columns": ["trial_type", "response_accuracy", "trial_number"],
+                                             "move_columns": []
+                                             },
+                   "response": {"onset_source": ["response_time"],
+                                "duration": 0,
+                                "copy_columns": ["response_hand", "response_accuracy", "trial_number", "trial_type"],
+                                "move_columns": []
+                                },
+                   "remove_trial_parent": true
+                  }
+  },
+ {"remove_columns": ["stop_signal_delay", "response_time"]},
+ {"order_columns": ["onset", "duration", "trial_type", "event_type", "sex", "response_hand", "response_accuracy", "trial_number"]}
+]
