@@ -1,15 +1,15 @@
 import argparse
 import pandas as pd
 # import curation.remapping.operations.ops as ops
-from curation.remapping.operations.bidsfiles import find_task_files, load_operations, rename_and_save_new
+from curation.remodeling.operations.bidsfiles import find_task_files, load_operations, rename_and_save_new
 # import .operations.bidsfiles
-from curation.remapping.operations.ops import run_operations
+from curation.remodeling.operations.ops import run_operations
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Converts event files based on a json file specifying operations.")
-    parser.add_argument("-d", dest="bids_dir", help="")
+    parser.add_argument("-d", dest="bids_dir", help="Full path of BIDS root directory")
     parser.add_argument("-t", dest="task_name", help="The name of the task to make this enhancement.")
-    parser.add_argument("-o", dest="operations_json_path", help="")
+    parser.add_argument("-o", dest="remodeling_path", help="Path of the remodeling specification.")
     args = parser.parse_args()
 
     all_events_paths = find_task_files(args.bids_dir, args.task_name)

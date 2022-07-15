@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import copy
-import curation.remapping.operations.base as base
-import curation.remapping.operations.structure as structure
+import curation.remodeling.operations.base as base
+import curation.remodeling.operations.structure as structure
 # from curation.remapping.operations.base import get_indices, is_number, split_consecutive_parts, tuple_to_range
 # from curation.remapping.operations.structure import add_column_value, add_summed_events
 
@@ -11,15 +11,17 @@ def run_operations(df, operations_list):
     """ Runs operations from list on a dataframe."""
 
     # string to functions
-    dispatch = {'split_events': split_trial_events,
-                'derive_columns': derive_columns,
+    dispatch = {'add_structure': add_structure,
+                'add_trial_numbers': add_trial_numbers,
+                'derive_column': derive_column,
+                'factor_column': factor_column,
+                'factor_hed': factor_hed,
+                'merge_events': merge_events,
+                'reorder_columns': reorder_columns,
                 'rename_columns': rename_columns,
                 'remove_columns': remove_columns,
-                'order_columns': order_columns,
-                'merge_consecutive_events': merge_consecutive_events,
-                'add_structure': add_structure,
-                'trial_numbers': add_trial_numbers,
-                'remove_rows': remove_rows
+                'remove_rows': remove_rows,
+                'split_event': split_event,
                 }
 
     df = prep_events(df)
@@ -34,18 +36,45 @@ def run_operations(df, operations_list):
     return df
 
 
-def merge_consecutive_events(df, merge_dict):
-    consecutive_list = base.split_consecutive_parts(
-        df.index[df[merge_dict['column']] == merge_dict['value']].tolist())
-    for series in consecutive_list:
-        df.loc[series[0], 'duration'] = sum(df['duration'][series])
-        df.loc[series[1:], 'duration'] = 'to_remove'
-    df = df[df.duration != 'to_remove']
-    df = df.reset_index(drop=True)
+def add_structure(df, structure_dict):
+    dispatch = {'structure_column': structure.add_column_value,
+                'structure_event': structure.add_summed_events}
+
+    for element in structure_dict:
+        process = structure_dict[element]
+        indices = base.tuple_to_range(base.get_indices(df, process['marker_column'], process['marker_list']))
+        column = (process['new_column'] if 'new_column' in process else process['marker_column'])
+        value = (process['label'] if 'label' in process else element)
+        number = process['number']
+        df = dispatch[process.pop('type')](df, indices, column, value, number)
     return df
 
 
-def derive_columns(df, derive_dict):
+def add_trial_numbers(df, trial_dict):
+    df['trial'] = np.nan
+    block_indices = base.tuple_to_range(base.get_indices(df, trial_dict['block']['marker_column'],
+                                                         trial_dict['block']['marker_list']))
+    trial_indices = base.tuple_to_range(base.get_indices(df, trial_dict['trial']['marker_column'],
+                                                         trial_dict['trial']['marker_list']))
+
+    block_separated = []
+    for block_sublist in block_indices:
+        new_block_list = []
+        for trial_sublist in trial_indices:
+            if trial_sublist[0] in block_sublist:
+                new_block_list.append(trial_sublist)
+        block_separated.append(new_block_list)
+
+    for block in block_separated:
+        count = 0
+        for trial in block:
+            count += 1
+            df.loc[trial, 'trial'] = count
+    return df
+
+
+
+def derive_column(df, derive_dict):
     """ Add column based on other columns as specified by dictionary."""
 
     for column in derive_dict:
@@ -68,8 +97,46 @@ def derive_columns(df, derive_dict):
 
         new_column = new_column.dropna(axis=0)
         if column not in df.columns:
-            df[column] = 'n/a'
+            df[column] = np.nan
         df.loc[new_column.index.tolist(), column] = new_column
+    return df
+
+
+def factor_column(df, factor_dict):
+    return df
+
+
+def factor_hed (df, factor_dict):
+    return df
+
+
+def merge_events(df, merge_dict):
+    consecutive_list = base.split_consecutive_parts(
+        df.index[df[merge_dict['column']] == merge_dict['value']].tolist())
+    for series in consecutive_list:
+        df.loc[series[0], 'duration'] = sum(df['duration'][series])
+        df.loc[series[1:], 'duration'] = 'to_remove'
+    df = df[df.duration != 'to_remove']
+    df = df.reset_index(drop=True)
+    return df
+
+def prep_events(df):
+    df = df.replace('n/a', np.NaN)
+    #df = df.replace('n/a', 'n/a')
+    return df
+
+
+def rename_columns(df, rename_dict):
+    """ Renames columns as specified in event dictionary. """
+    return df.rename(columns=rename_dict)
+
+
+def remove_rows(df, remove_dict):
+    """ Removes rows with the values indicated in the columns. """
+
+    for column, drop_list in remove_dict.items():
+        for drop_val in drop_list:
+            df = df.loc[df[column] != drop_val]
     return df
 
 
@@ -78,7 +145,13 @@ def remove_columns(df, remove_dict):
     return df.drop(remove_dict, axis=1)
 
 
-def split_trial_events(df, split_dict):
+
+def reorder_columns(df, order_dict):
+    """ Reorders columns as specified in event dictionary. """
+    return df[order_dict]
+
+
+def split_event(df, split_dict):
     """ Splits trial row into events based on dictionary. """
 
     df['trial_number'] = df.index+1
@@ -131,66 +204,4 @@ def split_trial_events(df, split_dict):
         df = df.dropna(axis='rows', subset=['event_type'])
 
     df = df.sort_values('onset').reset_index(drop=True)
-    return df
-
-
-def prep_events(df):
-    # df = df.replace('n/a', np.NaN)
-    df = df.replace('n/a', 'n/a')
-    return df
-
-
-def rename_columns(df, rename_dict):
-    """ Renames columns as specified in event dictionary. """
-    return df.rename(columns=rename_dict)
-
-
-def remove_rows(df, remove_dict):
-    """ Removes rows with the values indicated in the columns. """
-
-    for column, drop_list in remove_dict.items():
-        for drop_val in drop_list:
-            df = df.loc[df[column] != drop_val]
-    return df
-
-
-def order_columns(df, order_dict):
-    """ Reorders columns as specified in event dictionary. """
-    return df[order_dict]
-
-
-def add_structure(df, structure_dict):
-    dispatch = {'structure_column': structure.add_column_value,
-                'structure_event': structure.add_summed_events}
-
-    for element in structure_dict:
-        process = structure_dict[element]
-        indices = base.tuple_to_range(base.get_indices(df, process['marker_column'], process['marker_list']))
-        column = (process['new_column'] if 'new_column' in process else process['marker_column'])
-        value = (process['label'] if 'label' in process else element)
-        number = process['number']
-        df = dispatch[process.pop('type')](df, indices, column, value, number)
-    return df
-
-
-def add_trial_numbers(df, trial_dict):
-    df['trial'] = np.nan
-    block_indices = base.tuple_to_range(base.get_indices(df, trial_dict['block']['marker_column'],
-                                                         trial_dict['block']['marker_list']))
-    trial_indices = base.tuple_to_range(base.get_indices(df, trial_dict['trial']['marker_column'],
-                                                         trial_dict['trial']['marker_list']))
-
-    block_separated = []
-    for block_sublist in block_indices:
-        new_block_list = []
-        for trial_sublist in trial_indices:
-            if trial_sublist[0] in block_sublist:
-                new_block_list.append(trial_sublist)
-        block_separated.append(new_block_list)
-
-    for block in block_separated:
-        count = 0
-        for trial in block:
-            count += 1
-            df.loc[trial, 'trial'] = count
     return df

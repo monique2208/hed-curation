@@ -16,14 +16,14 @@ def load_operations(json_path):
 
 
 def rename_and_save_new(df, path):
-    old_path = str(path)[:-4] + '_orig' + str(path)[-4:]
+    old_path = str(path)[:-4] + 'orig' + str(path)[-4:]
     if not os.path.exists(old_path) or not os.path.isfile(old_path):
-        os.rename(path, str(path)[:-4] + '_orig' + str(path)[-4:])
+        os.rename(path, str(path)[:-4] + 'orig' + str(path)[-4:])
     df.to_csv(path, sep='\t', index=False)
 
 
 def replace_new_with_old(path):
-    """ Replaces path with the one whose basename ends in _orig.
+    """ Replaces path with the one whose basename ends in orig.
 
     Args:
         path (str):  Full path of the file to be replaced.
@@ -35,7 +35,7 @@ def replace_new_with_old(path):
         The _orig file remains in place and can be deleted separately if all place all replacements are successful.
 
     """
-    old_path = str(path)[:-4] + '_orig' + str(path)[-4:]
+    old_path = str(path)[:-4] + 'orig' + str(path)[-4:]
     if not os.path.exists(old_path) or not os.path.isfile(old_path):
         return False
     try:
@@ -48,4 +48,4 @@ def replace_new_with_old(path):
 
 def remove_new_rename_old_deprecated(path):
     os.remove(path)
-    os.rename(str(path)[:-4] + '_orig' + str(path)[-4:], path)
+    os.rename(str(path)[:-4] + 'orig' + str(path)[-4:], path)

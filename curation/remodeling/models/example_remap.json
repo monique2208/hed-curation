@@ -1,0 +1,17 @@
+[
+    {
+        "name": "remove_columns",
+        "description": "Get rid of the sample and the value columns",
+        "parameters": {
+            "columns": ["sample", "value"]
+        }
+    },
+    {
+        "name": "reorder_columns",
+        "description": "Want the event_type and task_role to come after onset and duration",
+        "parameters": {
+            "column_order": ["onset", "duration", "event_type", "task_role"],
+            "keep_others": "True"
+        }
+    }
+]
