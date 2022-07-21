@@ -4,9 +4,11 @@ import shutil
 import json
 
 
-def find_task_files(bids_dir, task):
-    return [path for path in Path(bids_dir).rglob('*_events.tsv') if task in
-            str(path)]
+def find_task_files(bids_dir, task=None, suffix='*_events.tsv'):
+    if task is None:
+        return [path for path in Path(bids_dir).rglob(suffix)]
+    else:
+        return [path for path in Path(bids_dir).rglob(suffix) if task in str(path)]
 
 
 def load_operations(json_path):
@@ -45,6 +47,21 @@ def replace_new_with_old(path):
         return False
     return True
 
+def backup_events(path):
+    """ Replaces path with the one whose basename ends in orig.
+
+    Args:
+        path (str):  Full path of the file to be replaced.
+
+    Returns:
+        bool:  True if successful replacement.
+
+    Notes:
+        The _orig file remains in place and can be deleted separately if all place all replacements are successful.
+
+    """
+    new_path = str(path)[:-4] + 'orig' + str(path)[-4:]
+    shutil.copy(path, new_path)
 
 def remove_new_rename_old_deprecated(path):
     os.remove(path)

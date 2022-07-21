@@ -3,9 +3,10 @@ import numpy as np
 import copy
 import curation.remodeling.operations.base as base
 import curation.remodeling.operations.structure as structure
+from hed.errors import HedFileError
 # from curation.remapping.operations.base import get_indices, is_number, split_consecutive_parts, tuple_to_range
 # from curation.remapping.operations.structure import add_column_value, add_summed_events
-
+# TODO: eventually the parameters parsing should be pulled out with a schema.
 
 def run_operations(df, operations_list):
     """ Runs operations from list on a dataframe."""
@@ -21,17 +22,14 @@ def run_operations(df, operations_list):
                 'rename_columns': rename_columns,
                 'remove_columns': remove_columns,
                 'remove_rows': remove_rows,
-                'split_event': split_event,
+                'split_events': split_events,
                 }
 
     df = prep_events(df)
-    for operation_dict in operations_list:
-        operation_key = list(operation_dict.keys())[0]
-        # deepcopy for pop in split events
-        df = dispatch[operation_key](df, copy.deepcopy(operation_dict[operation_key]))
-        print('FINISHED %s' % operation_key)
-        print(df.head())
-        print('')
+    for operation in operations_list:
+        command = operation["command"]
+        parameters = operation["parameters"]
+        df = dispatch[command](df, parameters)
     df = df.fillna('n/a')
     return df
 
@@ -120,88 +118,165 @@ def merge_events(df, merge_dict):
     df = df.reset_index(drop=True)
     return df
 
+
 def prep_events(df):
+    """ Replace all n/a entries in the data frame by np.NaN for processing.
+
+    Args:
+        df (DataFrame) - The DataFrame to be processed.
+
+    """
     df = df.replace('n/a', np.NaN)
-    #df = df.replace('n/a', 'n/a')
     return df
 
 
-def rename_columns(df, rename_dict):
-    """ Renames columns as specified in event dictionary. """
-    return df.rename(columns=rename_dict)
+def rename_columns(df, parameters):
+    """ Renames columns as specified in rename dictionary.
+
+    Args:
+        df (DataFrame) - The DataFrame whose columns are to be renamed.
+        parameters (dict) - Dictionary of parameters.
+
+    Raises:
+        KeyError - when ignore_missing is false and column_mapping has columns not in df.
+
+    Notes:
+        - column_mapping is a dictionary of old column name to new column name.
+        - ignore_missing is a boolean indicating whether old column names must be in df.
+
+    """
+    column_mapping = parameters['column_mapping']
+    ignore_missing = parameters['ignore_missing']
+    if ignore_missing:
+        error_handling = 'ignore'
+    else:
+        error_handling = 'raise'
+    return df.rename(columns=column_mapping, errors=error_handling)
 
 
-def remove_rows(df, remove_dict):
-    """ Removes rows with the values indicated in the columns. """
+def remove_rows(df, parameters):
+    """ Removes rows with the values indicated in the columns.
 
-    for column, drop_list in remove_dict.items():
-        for drop_val in drop_list:
-            df = df.loc[df[column] != drop_val]
+    Args:
+        df (DataFrame) - The DataFrame whose rows are to be removed.
+        parameters (dict) - Dictionary of parameters.
+
+    Raises:
+
+    Notes:
+        - column_name is name of column to be tested.
+        - remove_values is a list of values to test for row removal.
+        - if column_name is not a column in df, df is just returned.
+
+    """
+
+    column = parameters["column_name"]
+    remove_values = parameters["remove_values"]
+    if column not in df.columns:
+        return df
+    for value in remove_values:
+        df = df.loc[df[column] != value, :]
     return df
 
 
-def remove_columns(df, remove_dict):
-    """ Removes columns as specified by dictionary."""
-    return df.drop(remove_dict, axis=1)
+def remove_columns(df, parameters):
+    """ Remove indicated columns from the dataframe.
+
+    Args:
+        df (DataFrame) - The DataFrame whose columns are to be removed.
+        parameters (dict) - Dictionary of parameters.
+
+    Raises:
+        KeyError if ignore_missing is false and
+
+    Notes:
+        - remove_names is a list of columns to be removed.
+        - ignore_missing indicates whether names in remove_names that are not columns in df should be ignored.
+
+    """
+    remove_names = parameters['remove_names']
+    ignore_missing = parameters['ignore_missing']
+    if ignore_missing:
+        error_handling = 'ignore'
+    else:
+        error_handling = 'raise'
+    return df.drop(remove_names, axis=1, errors=error_handling)
 
 
-
-def reorder_columns(df, order_dict):
+def reorder_columns(df, parameters):
     """ Reorders columns as specified in event dictionary. """
-    return df[order_dict]
-
-
-def split_event(df, split_dict):
-    """ Splits trial row into events based on dictionary. """
-
-    df['trial_number'] = df.index+1
-
-    add_column = 'event_type'
-    add_column_location = 3
-    remove_trial_parent = split_dict.pop('remove_trial_parent')
-
-    df.insert(add_column_location, add_column, np.repeat(np.nan, len(df)))
-    new_events = pd.DataFrame([], columns=df.columns)
-
-    for event in split_dict:
-        add_events = pd.DataFrame([], columns=df.columns)
-        print('Adding event %s \n' % event)
-        print('')
-        onsets = df['onset']
-        w = split_dict[event]['onset_source']
-        for onset in split_dict[event]['onset_source']:
-            if base.is_number(onset):
-                onsets = onsets + onset
-            elif isinstance(onset, str):
-                y = split_dict[event]
-                x = df[onset]
-                onsets = onsets + df[onset]
-
-        add_events['onset'] = onsets
-            # remove events if there is no onset (=no response)
-
-        if base.is_number(split_dict[event]['duration']):
-            add_events['duration'] = split_dict[event]['duration']
-        elif isinstance(split_dict[event]['duration'], str):
-            add_events['duration'] = df[split_dict[event]['duration']]
-
-        if len(split_dict[event]['copy_columns']) > 0:
-            for column in split_dict[event]['copy_columns']:
-                add_events[column] = df[column]
-        add_events['trial_number'] = df['trial_number']
-
-        if len(split_dict[event]['move_columns']) > 0:
-            for column in split_dict[event]['move_columns']:
-                add_events[column] = df[column]
-
-        add_events['event_type'] = event
-        add_events = add_events.dropna(axis='rows', subset=['onset'])
-        new_events = new_events.append(add_events)
-
-    df = df.append(new_events)
-
-    if remove_trial_parent:
-        df = df.dropna(axis='rows', subset=['event_type'])
-
-    df = df.sort_values('onset').reset_index(drop=True)
+    column_order = parameters['column_order']
+    ignore_missing = parameters['ignore_missing']
+    # TODO this doesn't handle ignore_missing yet
+    df = df.loc[:, column_order]
     return df
+
+
+def split_events(df, parameters):
+    """ Splits a row representing a particular event into multiple rows.
+
+    Args:
+        df (DataFrame) - The DataFrame whose rows are to be split.
+        parameters (dict) - Dictionary of parameters.
+
+    Raises:
+        KeyError if ignore_missing is false and
+
+    Notes:
+        - remove_names is a list of columns to be removed.
+        - ignore_missing indicates whether names in remove_names that are not columns in df should be ignored.
+
+    """
+
+    # Do we need to check that the new column doesn't exist
+    # TODO: this only handles parent events that are all trials
+    anchor_column = parameters["anchor_column"]
+    new_events = parameters["new_events"]
+    add_trial_numbers = parameters["add_trial_numbers"]
+    remove_parent_event = parameters["remove_trial_parent"]
+    if add_trial_numbers:
+        df['trial_number'] = df.index+1
+
+    if anchor_column not in df.columns:
+        df[anchor_column] = np.nan
+    # new_df = pd.DataFrame('n/a', index=range(len(df.index)), columns=df.columns)
+    if remove_parent_event:
+        df_list = []
+    else:
+        df_list = [df]
+    for event, event_parms in new_events.items():
+        add_events = pd.DataFrame([], columns=df.columns)
+        onsets = df['onset']
+
+        for onset in event_parms['onset_source']:
+            if isinstance(onset, float) or isinstance(onset, int):
+                onsets = onsets + onset
+            elif isinstance(onset, str) and onset in list(df.columns):
+                onsets = onsets + df[onset]
+            else:
+                raise HedFileError("BadOnsetInModel",
+                                   f"Remodeling onset {str(onset)} must either be numeric or a column name", "")
+        add_events['onset'] = onsets
+        add_events[anchor_column] = event
+            # remove events if there is no onset (=no response)
+        duration = event_parms['duration']
+        if isinstance(duration, float) or isinstance(duration, int):
+            add_events['duration'] = duration
+        elif isinstance(duration, str) and duration in list(df.columns):
+            add_events['duration'] = df[duration]
+        else:
+            raise HedFileError("BadDurationInModel",
+                               f"Remodeling onset {str(duration)} must either be numeric or a column name", "")
+
+        if len(event_parms['copy_columns']) > 0:
+            for column in event_parms['copy_columns']:
+                add_events[column] = df[column]
+
+
+        # add_events['event_type'] = event
+        add_events = add_events.dropna(axis='rows', subset=['onset'])
+        df_list.append(add_events)
+
+    df_new = pd.concat(df_list, axis=1)
+    df_new = df_new.sort_values('onset').reset_index(drop=True)
+    return df_new

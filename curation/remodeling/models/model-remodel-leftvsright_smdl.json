@@ -1,5 +1,5 @@
 {
-   "Name":"remodel_leftvsright",
+   "Name":"remap_leftvsright",
    "BIDSModelVersion":"1.0.0",
    "Description":"Test difference go signal press with left versus right hand timed at press.",
    "Input":{
@@ -14,37 +14,50 @@
             "Transformer": "pybids-transforms-v1",
             "Instructions": [
                {
+                  "Name": "Factor",
+                  "Input": ["response_hand"]
+               },
+               {
+                  "Name": "Rename",
+                  "Input": ["response_hand.left", "response_hand.right"],
+                  "Output": ["left_hand", "right_hand"]
+               },
+               {
                   "Name":"Convolve",
-                  "Input":["correct_left", "correct_right"],
+                  "Input":["left_hand", "right_hand"],
                   "Model":"spm"
                }
             ]
          },
          "Model":{
-            "X":["correct_left", "correct_right", "trans_*", "rot_*", 1],
+            "X":["left_hand", "right_hand", "trans_*", "rot_*", 1],
             "Type": "glm"
+         },
+         "DummyContrasts": {
+            "Conditions": ["left_hand", "right_hand"],
+            "Test":"t"
          },
          "Contrasts": [
             {
-               "Name":"left_bigger_than_right",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name":"left_bigger_than_right_re",
+               "ConditionList": ["left_hand", "right_hand"],
                "Weights":[1, -1],
                "Test":"t"
             },
             {
-               "Name":"right_bigger_than_left",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name":"right_bigger_than_left_re",
+               "ConditionList": ["left_hand", "right_hand"],
                "Weights":[-1, 1],
                "Test":"t"
             },
             {
-               "Name":"response_vs_baseline",
-               "ConditionList":["correct_left", "correct_right"],
+               "Name":"response_vs_baseline_re",
+               "ConditionList":["left_hand", "right_hand"],
                "Weights":[0.5, 0.5],
                "Test":"t"
             },
             {
-                "Name": "Movement-related effects",
+                "Name": "Movement_related_effects_re",
                     "ConditionList": ["trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z"],
                     "Weights": [
                         [1,0,0,0,0,0],
@@ -67,7 +80,7 @@
             "Type": "glm"
          },
          "DummyContrasts": {
-            "Contrasts": ["left_bigger_than_right", "right_bigger_than_left", "response_vs_baseline"],
+            "Contrasts": ["left_bigger_than_right_re", "right_bigger_than_left_re", "response_vs_baseline_re"],
             "Test":  "t"
          }
       },
@@ -76,13 +89,13 @@
          "Name": "F-test",
          "GroupBy": [],
          "Model":{
-            "X": ["correct_left", "correct_right"],
+            "X": ["left_hand", "right_hand"],
             "Type": "glm"
          },
          "Contrasts":[
             {
-               "Name": "any_response",
-               "ConditionList": ["correct_left", "correct_right"],
+               "Name": "any_response_re",
+               "ConditionList": ["left_hand", "right_hand"],
                "Weights": [[1, 0], [0, 1]],
                "Test": "F"
             }
@@ -94,14 +107,14 @@
          "Source":"subject",
          "Destination":"t-test",
          "Filter":{
-            "contrast":["any_response", "left_bigger_than_right", "right_bigger_than_left"]
+            "contrast":["any_response_re", "left_bigger_than_right_re", "right_bigger_than_left_re"]
          }
       },
       {
          "Source":"subject",
          "Destination":"F-test",
          "Filter":{
-            "contrast":["correct_left", "correct_right"]
+            "contrast":["left_hand", "right_hand"]
          }
       }
    ]
