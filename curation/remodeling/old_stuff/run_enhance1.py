@@ -19,7 +19,7 @@ def find_task_files(bids_dir, task):
 
 
 def rename_and_save_new(df, path):
-    os.rename(path, str(path)[:-4] + '_orig' + str(path)[-4:])
+    os.rename(path, str(path)[:-4] + 'orig' + str(path)[-4:])
     df.to_csv(path, sep='\t', index=False)
 
 

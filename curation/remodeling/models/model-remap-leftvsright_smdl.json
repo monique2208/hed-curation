@@ -1,5 +1,5 @@
 {
-   "Name":"remap_leftvsright",
+   "Name":"remodel_leftvsright",
    "BIDSModelVersion":"1.0.0",
    "Description":"Test difference go signal press with left versus right hand timed at press.",
    "Input":{
@@ -13,28 +13,6 @@
          "Transformations":{
             "Transformer": "pybids-transforms-v1",
             "Instructions": [
-               {
-                  "Name": "DropNA",
-                  "Input": "response_accuracy"
-               },
-               {
-                  "Name": "DropNA",
-                  "Input": "response_hand"
-               },
-               {
-                  "Name": "Factor",
-                  "Input": ["response_hand", "response_accuracy"]
-               },
-               {
-                  "Name": "And",
-                  "Input": ["response_accuracy.correct", "response_hand.left"],
-                  "Output": "correct_left"
-               },
-               {
-                  "Name": "And",
-                  "Input": ["response_accuracy.correct", "response_hand.right"],
-                  "Output": "correct_right"
-               },
                {
                   "Name":"Convolve",
                   "Input":["correct_left", "correct_right"],

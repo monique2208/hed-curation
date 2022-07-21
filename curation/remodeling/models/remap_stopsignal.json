@@ -8,7 +8,7 @@
                 "move_columns": ["trial_type", "sex", "response_hand", "response_accuracy"]
             },
             "stop_signal": {
-                "onset_source": ["stop_signal_delay", 0.5083],
+                "onset_source": ["stop_signal_delay"],
                 "duration": 0.5,
                 "copy_columns": [],
                 "move_columns": ["trial_type", "sex", "response_hand", "response_accuracy"]

@@ -1,0 +1,69 @@
+{
+   "Name":"leftvsrighthands",
+   "BIDSModelVersion":"1.0.0",
+   "Description":"Test go left versus go right hand",
+   "Input":{"task":"stopsignal"},
+   "Nodes":[
+      {
+         "Level":"run",
+         "Name":"Subject-level",
+         "GroupBy":["subject"],
+         "Transformations":{
+            "Transformer": "pybids-transforms-v1",
+            "Instructions": [
+               {"Name": "Factor", "Input": ["trial_type", "response_hand", "sex"]},
+               {"Name": "And", "Input": ["trial_type.go", "response_hand.left"], "Output": "go_left"},
+               {"Name": "And", "Input": ["trial_type.go", "response_hand.right"], "Output": "go_right"},
+               {"Name":"Convolve", "Input":["go_right", "go_left"], "Model":"spm"}
+            ]
+         },
+         "Model":{"X":["go_right", "go_left", "trans_*", "rot_*", 1], "Type": "glm"},
+         "DummyContrasts": {"Conditions": ["go_left", "go_right"], "Test":"t"},
+         "Contrasts": [
+            {"Name":"left_bigger_than_right", "ConditionList": ["go_left", "go_right"], "Weights":[1, -1], "Test":"t"},
+            {"Name":"right_bigger_than_left", "ConditionList": ["go_left", "go_right"], "Weights":[-1, 1], "Test":"t"},
+            {"Name":"go_trial_vs_baseline", "ConditionList":["go_left", "go_right"], "Weights":[0.5, 0.5], "Test":"t"},
+            {"Name": "Movement-related effects",
+                    "ConditionList": ["trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z"],
+                    "Weights": [
+                        [1,0,0,0,0,0],
+                        [0,1,0,0,0,0],
+                        [0,0,1,0,0,0],
+                        [0,0,0,1,0,0],
+                        [0,0,0,0,1,0],
+                        [0,0,0,0,0,1]
+                    ],
+                    "Test": "F"
+                }
+         ]
+      },
+      {
+         "Level": "dataset",
+         "Name": "t-test",
+         "GroupBy": ["contrast"],
+         "Model": {"X": [1], "Type": "glm"},
+         "DummyContrasts": {"Test":"t"}
+      },
+      {
+         "Level": "dataset",
+         "Name": "F-test",
+         "GroupBy": [],
+         "Model":{"X": ["go_left", "go_right"], "Type": "glm"},
+         "Contrasts":[
+            {"Name": "any_go_trial", "ConditionList": ["go_left", "go_right"], "Weights": [[1, 0], [0, 1]], "Test": "F"}
+         ]
+      }
+   ],
+   "Edges":[
+      {
+         "Source":"subject",
+         "Destination":"t-test",
+         "Filter":{"contrast":["any_go_trial", "left_bigger_than_right", "right_bigger_than_left"]}
+      },
+      {
+         "Source":"subject",
+         "Destination":"F-test",
+         "Filter":{"contrast":["go_left", "go_right"]}
+      }
+   ]
+}

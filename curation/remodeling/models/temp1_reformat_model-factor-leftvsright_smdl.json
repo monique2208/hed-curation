@@ -1,0 +1,15 @@
+{
+   "Name":"leftvsrighthands",
+   "BIDSModelVersion":"1.0.0",
+   "Description":"Test go left versus go right hand",
+   "Input":{"task":"stopsignal"},
+   "Nodes":[
+      {"Level":"run", "Name":"subject-level", "GroupBy":["subject"], ... }
+      {"Level": "dataset", "Name": "t-test-of-contrasts", "GroupBy": ["contrast"], ...}
+      {"Level": "dataset", "Name": "F-test-of-left-right", "GroupBy": [],... }
+   ],
+   "Edges":[
+      {"Source":"subject", "Destination":"t-test-of-contrasts", ... }
+      {"Source":"subject", "Destination":"F-test-of-left-right", ...}
+   ]
+}
