@@ -9,11 +9,19 @@ from hed.errors import HedFileError
 # TODO: eventually the parameters parsing should be pulled out with a schema.
 
 def run_operations(df, operations_list):
-    """ Runs operations from list on a dataframe."""
+    """ Run operations from list on a dataframe.
+
+    Args:
+        df (DataFrame)          A dataframe containing the file to be remodeled.
+        operations_list (list)  A list of dictionaries representing commands
+
+    """
 
     # string to functions
-    dispatch = {'add_structure': add_structure,
-                'add_trial_numbers': add_trial_numbers,
+    dispatch = {
+                'add_structure_columns': add_structure_columns,
+                'add_structure_events': add_structure_events,
+                'add_structure_numbers': add_structure_numbers,
                 'derive_column': derive_column,
                 'factor_column': factor_column,
                 'factor_hed': factor_hed,
@@ -34,7 +42,8 @@ def run_operations(df, operations_list):
     return df
 
 
-def add_structure(df, structure_dict):
+def add_structure_columns(df, structure_dict):
+    # TODO: this is not written
     dispatch = {'structure_column': structure.add_column_value,
                 'structure_event': structure.add_summed_events}
 
@@ -48,7 +57,23 @@ def add_structure(df, structure_dict):
     return df
 
 
-def add_trial_numbers(df, trial_dict):
+def add_structure_events(df, structure_dict):
+    # TODO: This is not written
+    dispatch = {'structure_column': structure.add_column_value,
+                'structure_event': structure.add_summed_events}
+
+    for element in structure_dict:
+        process = structure_dict[element]
+        indices = base.tuple_to_range(base.get_indices(df, process['marker_column'], process['marker_list']))
+        column = (process['new_column'] if 'new_column' in process else process['marker_column'])
+        value = (process['label'] if 'label' in process else element)
+        number = process['number']
+        df = dispatch[process.pop('type')](df, indices, column, value, number)
+    return df
+
+
+def add_structure_numbers(df, trial_dict):
+    # TODO: this is not written
     df['trial'] = np.nan
     block_indices = base.tuple_to_range(base.get_indices(df, trial_dict['block']['marker_column'],
                                                          trial_dict['block']['marker_list']))
@@ -71,8 +96,8 @@ def add_trial_numbers(df, trial_dict):
     return df
 
 
-
 def derive_column(df, derive_dict):
+    # TODO: this has not been rewritten
     """ Add column based on other columns as specified by dictionary."""
 
     for column in derive_dict:
@@ -100,15 +125,54 @@ def derive_column(df, derive_dict):
     return df
 
 
-def factor_column(df, factor_dict):
+def factor_column(df, parameters):
+    """ Create factor columns corresponding to values in a specified column.
+
+    Args:
+        df (DataFrame) - The DataFrame to be factored.
+        parameters (dict) - Dictionary of parameters.
+
+    Raises:
+        ValueError:
+            - If lengths of factor_values and factor_names are not the same.
+            - If factor_name is already a column and overwrite_existing is False.
+
+    Notes:
+        - column_name is the name of a column in the dataframe.
+        - factor_values is a list of the values in column_name to create factors for.
+        - factor_names is a list of the names to use as the factor columns.
+        - overwrite_existing is a boolean indicating an existing factor column should be overwritten.
+
+    """
+    # TODO: Better handling of argument checking and unit testing
+    # TODO: Implementation in process
+    column_name = parameters['column_name']
+    factor_values = parameters['factor_values']
+    factor_names = parameters['factor_names']
+    overwrite_existing = parameters['overwrite_existing']
+    if len(factor_values) != len(factor_names):
+        raise ValueError("FactorNameLenBad", "The lengths of factor_values and factor_names must be the same.")
+    elif len(factor_values) == 0:
+        factor_values = df[column_name].unique()
+        factor_names = [column_name + '.' + str(column_value) for column_value in factor_values]
+    if not overwrite_existing:
+        overlap = set(df.columns).intersection(set(factor_names))
+        if overlap:
+            raise ValueError("FactorColumnsExist",
+                             f"Factor columns {str(overlap)} are already in dataframe and overwrite_existing is false")
+    # for factor_value in factor_values:
+    #     factor_index =
+    print(f"{factor_values}: {factor_names}")
     return df
 
 
-def factor_hed (df, factor_dict):
+def factor_hed (df, parameters):
+    # TODO: this has not be written
     return df
 
 
 def merge_events(df, merge_dict):
+    # TODO: this has not be rewritten
     consecutive_list = base.split_consecutive_parts(
         df.index[df[merge_dict['column']] == merge_dict['value']].tolist())
     for series in consecutive_list:
@@ -131,7 +195,7 @@ def prep_events(df):
 
 
 def rename_columns(df, parameters):
-    """ Renames columns as specified in rename dictionary.
+    """ Rename columns as specified in column_mapping dictionary.
 
     Args:
         df (DataFrame) - The DataFrame whose columns are to be renamed.
@@ -145,6 +209,7 @@ def rename_columns(df, parameters):
         - ignore_missing is a boolean indicating whether old column names must be in df.
 
     """
+    # TODO: needs argument checking
     column_mapping = parameters['column_mapping']
     ignore_missing = parameters['ignore_missing']
     if ignore_missing:
@@ -169,7 +234,7 @@ def remove_rows(df, parameters):
         - if column_name is not a column in df, df is just returned.
 
     """
-
+    # TODO: needs argument checking and unit testing
     column = parameters["column_name"]
     remove_values = parameters["remove_values"]
     if column not in df.columns:
@@ -194,6 +259,7 @@ def remove_columns(df, parameters):
         - ignore_missing indicates whether names in remove_names that are not columns in df should be ignored.
 
     """
+    # TODO: needs argument checking and unit testing
     remove_names = parameters['remove_names']
     ignore_missing = parameters['ignore_missing']
     if ignore_missing:
@@ -205,6 +271,7 @@ def remove_columns(df, parameters):
 
 def reorder_columns(df, parameters):
     """ Reorders columns as specified in event dictionary. """
+    # TODO needs rewriting
     column_order = parameters['column_order']
     ignore_missing = parameters['ignore_missing']
     # TODO this doesn't handle ignore_missing yet
@@ -230,6 +297,7 @@ def split_events(df, parameters):
 
     # Do we need to check that the new column doesn't exist
     # TODO: this only handles parent events that are all trials
+    # TODO: needs unit testing and argument checking
     anchor_column = parameters["anchor_column"]
     new_events = parameters["new_events"]
     add_trial_numbers = parameters["add_trial_numbers"]
