@@ -1,12 +1,17 @@
 import pandas as pd
 import numpy as np
-import copy
-import curation.remodeling.operations.base as base
-import curation.remodeling.operations.structure as structure
-from hed.errors import HedFileError
+import curation.remodeling.util.base as base
+import curation.remodeling.util.structure as structure
 # from curation.remapping.operations.base import get_indices, is_number, split_consecutive_parts, tuple_to_range
 # from curation.remapping.operations.structure import add_column_value, add_summed_events
 # TODO: eventually the parameters parsing should be pulled out with a schema.
+from curation.remodeling.operations.remove_columns_op import remove_columns
+from curation.remodeling.operations.reorder_columns_op import reorder_columns
+from curation.remodeling.operations.split_events_op import split_events
+from curation.remodeling.operations.factor_column_op import factor_column
+from curation.remodeling.operations.remove_rows_op import remove_rows
+from curation.remodeling.operations.rename_columns_op import rename_columns
+
 
 def run_operations(df, operations_list):
     """ Run operations from list on a dataframe.
@@ -19,24 +24,66 @@ def run_operations(df, operations_list):
 
     # string to functions
     dispatch = {
-                'add_structure_columns': add_structure_columns,
-                'add_structure_events': add_structure_events,
-                'add_structure_numbers': add_structure_numbers,
-                'derive_column': derive_column,
-                'factor_column': factor_column,
-                'factor_hed': factor_hed,
-                'merge_events': merge_events,
-                'reorder_columns': reorder_columns,
-                'rename_columns': rename_columns,
-                'remove_columns': remove_columns,
-                'remove_rows': remove_rows,
-                'split_events': split_events,
-                }
+        'add_structure_columns': {
+            'command': add_structure_columns,
+            'required_args': []
+        },
+        'add_structure_events': {
+            'command': add_structure_events,
+            'required_args': []
+        },
+        'add_structure_numbers': {
+            'command': add_structure_numbers,
+            'required_args': []
+        },
+        'derive_column': {
+            'command': derive_column,
+            'required_args': []
+        },
+        'factor_column': {
+            'command': factor_column,
+            'required_args': ["column_name", "factor_values", "factor_names", "ignore_missing", "overwrite_existing"]
+        },
+        'factor_hed': {
+            'command': factor_hed,
+            'required_args': []
+        },
+        'merge_events': {
+            'command': merge_events,
+            'required_args': []
+        },
+        'remove_columns': {
+            'command': remove_columns,
+            'required_args': ["remove_names", "ignore_missing"]
+        },
+        'remove_rows': {
+            'command': remove_rows,
+            'required_args': ["column_name", "remove_values"]
+        },
+        'rename_columns': {
+            'command': rename_columns,
+            'required_args': ["column_mapping", "ignore_missing"]
+        },
+        'reorder_columns': {
+            'command': reorder_columns,
+            'required_args': ["column_order", "ignore_missing"]
+        },
+        'split_events': {
+            'command': split_events,
+            'required_args': ["anchor_event", "event_selection", "new_events"]
+        }
+    }
 
     df = prep_events(df)
     for operation in operations_list:
-        command = operation["command"]
-        parameters = operation["parameters"]
+        command = operation.get("command", None)
+        if command is None or command not in dispatch:
+            raise KeyError("InvalidCommand",
+                           f"The command parameter {command} is missing or not valid")
+        parameters = operation.get("parameters", None)
+        if parameters is None:
+            raise KeyError("InvalidParameters",
+                           f"The parameters argument for command {command} is missing or not valid")
         df = dispatch[command](df, parameters)
     df = df.fillna('n/a')
     return df
@@ -125,48 +172,7 @@ def derive_column(df, derive_dict):
     return df
 
 
-def factor_column(df, parameters):
-    """ Create factor columns corresponding to values in a specified column.
-
-    Args:
-        df (DataFrame) - The DataFrame to be factored.
-        parameters (dict) - Dictionary of parameters.
-
-    Raises:
-        ValueError:
-            - If lengths of factor_values and factor_names are not the same.
-            - If factor_name is already a column and overwrite_existing is False.
-
-    Notes:
-        - column_name is the name of a column in the dataframe.
-        - factor_values is a list of the values in column_name to create factors for.
-        - factor_names is a list of the names to use as the factor columns.
-        - overwrite_existing is a boolean indicating an existing factor column should be overwritten.
-
-    """
-    # TODO: Better handling of argument checking and unit testing
-    # TODO: Implementation in process
-    column_name = parameters['column_name']
-    factor_values = parameters['factor_values']
-    factor_names = parameters['factor_names']
-    overwrite_existing = parameters['overwrite_existing']
-    if len(factor_values) != len(factor_names):
-        raise ValueError("FactorNameLenBad", "The lengths of factor_values and factor_names must be the same.")
-    elif len(factor_values) == 0:
-        factor_values = df[column_name].unique()
-        factor_names = [column_name + '.' + str(column_value) for column_value in factor_values]
-    if not overwrite_existing:
-        overlap = set(df.columns).intersection(set(factor_names))
-        if overlap:
-            raise ValueError("FactorColumnsExist",
-                             f"Factor columns {str(overlap)} are already in dataframe and overwrite_existing is false")
-    # for factor_value in factor_values:
-    #     factor_index =
-    print(f"{factor_values}: {factor_names}")
-    return df
-
-
-def factor_hed (df, parameters):
+def factor_hed(df, parameters):
     # TODO: this has not be written
     return df
 
@@ -194,157 +200,3 @@ def prep_events(df):
     return df
 
 
-def rename_columns(df, parameters):
-    """ Rename columns as specified in column_mapping dictionary.
-
-    Args:
-        df (DataFrame) - The DataFrame whose columns are to be renamed.
-        parameters (dict) - Dictionary of parameters.
-
-    Raises:
-        KeyError - when ignore_missing is false and column_mapping has columns not in df.
-
-    Notes:
-        - column_mapping is a dictionary of old column name to new column name.
-        - ignore_missing is a boolean indicating whether old column names must be in df.
-
-    """
-    # TODO: needs argument checking
-    column_mapping = parameters['column_mapping']
-    ignore_missing = parameters['ignore_missing']
-    if ignore_missing:
-        error_handling = 'ignore'
-    else:
-        error_handling = 'raise'
-    return df.rename(columns=column_mapping, errors=error_handling)
-
-
-def remove_rows(df, parameters):
-    """ Removes rows with the values indicated in the columns.
-
-    Args:
-        df (DataFrame) - The DataFrame whose rows are to be removed.
-        parameters (dict) - Dictionary of parameters.
-
-    Raises:
-
-    Notes:
-        - column_name is name of column to be tested.
-        - remove_values is a list of values to test for row removal.
-        - if column_name is not a column in df, df is just returned.
-
-    """
-    # TODO: needs argument checking and unit testing
-    column = parameters["column_name"]
-    remove_values = parameters["remove_values"]
-    if column not in df.columns:
-        return df
-    for value in remove_values:
-        df = df.loc[df[column] != value, :]
-    return df
-
-
-def remove_columns(df, parameters):
-    """ Remove indicated columns from the dataframe.
-
-    Args:
-        df (DataFrame) - The DataFrame whose columns are to be removed.
-        parameters (dict) - Dictionary of parameters.
-
-    Raises:
-        KeyError if ignore_missing is false and
-
-    Notes:
-        - remove_names is a list of columns to be removed.
-        - ignore_missing indicates whether names in remove_names that are not columns in df should be ignored.
-
-    """
-    # TODO: needs argument checking and unit testing
-    remove_names = parameters['remove_names']
-    ignore_missing = parameters['ignore_missing']
-    if ignore_missing:
-        error_handling = 'ignore'
-    else:
-        error_handling = 'raise'
-    return df.drop(remove_names, axis=1, errors=error_handling)
-
-
-def reorder_columns(df, parameters):
-    """ Reorders columns as specified in event dictionary. """
-    # TODO needs rewriting
-    column_order = parameters['column_order']
-    ignore_missing = parameters['ignore_missing']
-    # TODO this doesn't handle ignore_missing yet
-    df = df.loc[:, column_order]
-    return df
-
-
-def split_events(df, parameters):
-    """ Splits a row representing a particular event into multiple rows.
-
-    Args:
-        df (DataFrame) - The DataFrame whose rows are to be split.
-        parameters (dict) - Dictionary of parameters.
-
-    Raises:
-        KeyError if ignore_missing is false and
-
-    Notes:
-        - remove_names is a list of columns to be removed.
-        - ignore_missing indicates whether names in remove_names that are not columns in df should be ignored.
-
-    """
-
-    # Do we need to check that the new column doesn't exist
-    # TODO: this only handles parent events that are all trials
-    # TODO: needs unit testing and argument checking
-    anchor_column = parameters["anchor_column"]
-    new_events = parameters["new_events"]
-    add_trial_numbers = parameters["add_trial_numbers"]
-    remove_parent_event = parameters["remove_trial_parent"]
-    if add_trial_numbers:
-        df['trial_number'] = df.index+1
-
-    if anchor_column not in df.columns:
-        df[anchor_column] = np.nan
-    # new_df = pd.DataFrame('n/a', index=range(len(df.index)), columns=df.columns)
-    if remove_parent_event:
-        df_list = []
-    else:
-        df_list = [df]
-    for event, event_parms in new_events.items():
-        add_events = pd.DataFrame([], columns=df.columns)
-        onsets = df['onset']
-
-        for onset in event_parms['onset_source']:
-            if isinstance(onset, float) or isinstance(onset, int):
-                onsets = onsets + onset
-            elif isinstance(onset, str) and onset in list(df.columns):
-                onsets = onsets + df[onset]
-            else:
-                raise HedFileError("BadOnsetInModel",
-                                   f"Remodeling onset {str(onset)} must either be numeric or a column name", "")
-        add_events['onset'] = onsets
-        add_events[anchor_column] = event
-            # remove events if there is no onset (=no response)
-        duration = event_parms['duration']
-        if isinstance(duration, float) or isinstance(duration, int):
-            add_events['duration'] = duration
-        elif isinstance(duration, str) and duration in list(df.columns):
-            add_events['duration'] = df[duration]
-        else:
-            raise HedFileError("BadDurationInModel",
-                               f"Remodeling onset {str(duration)} must either be numeric or a column name", "")
-
-        if len(event_parms['copy_columns']) > 0:
-            for column in event_parms['copy_columns']:
-                add_events[column] = df[column]
-
-
-        # add_events['event_type'] = event
-        add_events = add_events.dropna(axis='rows', subset=['onset'])
-        df_list.append(add_events)
-
-    df_new = pd.concat(df_list, axis=1)
-    df_new = df_new.sort_values('onset').reset_index(drop=True)
-    return df_new

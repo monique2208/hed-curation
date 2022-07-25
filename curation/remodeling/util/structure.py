@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from curation.remodeling.operations import base
+from curation.remodeling.util import base
 
 
 def add_summed_events(df, indexes, column, value, number):

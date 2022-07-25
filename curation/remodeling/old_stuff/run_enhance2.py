@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 # import curation.remapping.operations.ops as ops
-from curation.remodeling.operations.bidsfiles import find_task_files, load_operations, rename_and_save_new
+from curation.remodeling.util.bidsfiles import find_task_files, load_operations, rename_and_save_new
 # import .operations.bidsfiles
 from curation.remodeling.operations.ops import run_operations
 
