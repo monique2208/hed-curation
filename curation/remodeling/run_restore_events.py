@@ -1,5 +1,5 @@
 import argparse
-from curation.remodeling.operations.bidsfiles import find_task_files, replace_new_with_old
+from curation.remodeling.util.bidsfiles import find_task_files, replace_new_with_old
 
 
 if __name__ == '__main__':
