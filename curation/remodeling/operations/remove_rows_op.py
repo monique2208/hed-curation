@@ -32,6 +32,9 @@ class RemoveRowsOp(BaseOp):
         Args:
             df (DataFrame) - The DataFrame whose rows are to be removed.
 
+        Returns:
+            DataFrame - a new dataframe with the rows removed.
+
         If column_name is not a column in df, df is just returned.
 
         """

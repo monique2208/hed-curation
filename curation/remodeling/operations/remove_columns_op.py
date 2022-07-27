@@ -45,6 +45,9 @@ class RemoveColumnsOp(BaseOp):
         Args:
             df (DataFrame) - The DataFrame whose columns are to be removed.
 
+        Returns:
+            DataFrame - a new dataframe with the columns removed.
+
         Raises:
             KeyError if ignore_missing is false and column not in df is to be removed.
 

@@ -36,6 +36,9 @@ class ReorderColumnsOp(BaseOp):
         Args:
             df (DataFrame) - The DataFrame whose columns are to be reordered.
 
+        Returns:
+            DataFrame - a new dataframe with the columns reordered.
+
         Raises:
             ValueError - when ignore_missing is false and column_order has columns not in df.
 

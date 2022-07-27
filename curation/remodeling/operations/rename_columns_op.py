@@ -38,6 +38,10 @@ class RenameColumnsOp (BaseOp):
         Args:
             df (DataFrame) - The DataFrame whose columns are to be renamed.
 
+        Returns:
+            DataFrame - a new dataframe with columns renamed.
+
+
         Raises:
             KeyError - when ignore_missing is false and column_mapping has columns not in df.
 

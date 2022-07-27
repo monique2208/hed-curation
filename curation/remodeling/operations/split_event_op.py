@@ -31,11 +31,10 @@ class SplitEventOp(BaseOp):
             df (DataFrame) - The DataFrame whose rows are to be split.
 
         Returns:
-            DataFrame - A new dataframe with the operation performed on it.
+            DataFrame - A new dataframe with the event split.
 
         Raises:
-            KeyError if ignore_missing is false and
-
+            TypeError - if bad onset or duration.
 
         """
 

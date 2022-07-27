@@ -66,7 +66,7 @@ class Test(unittest.TestCase):
         self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
                         "remove_columns should not change the input df values when extras and ignore missing")
 
-    def test_valid(self):
+    def test_valid_no_extras_no_ignore(self):
         # Test when no extras but not ignored.
         parms = json.loads(self.json_parms)
         parms["ignore_missing"] = False
@@ -86,7 +86,7 @@ class Test(unittest.TestCase):
         self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
                         "remove_columns should not change the input df values when no extras and not ignored")
 
-    def test_invalid_extras(self):
+    def test_invalid_extras_no_ignore(self):
         # Test when extras and not ignored.
         parms = json.loads(self.json_parms)
         parms["remove_names"].append("face")
