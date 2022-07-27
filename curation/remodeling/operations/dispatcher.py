@@ -39,11 +39,13 @@ class Dispatcher:
                              f"Cannot create a dispatcher for a list of invalid remodeling commands")
         self.command_list = com_list
 
-    def run_operations(self, df):
+    def run_operations(self, df, hed_schema=None, sidecar=None):
         """ Run the dispatcher commands on a dataframe.
 
         Args:
             df (DataFrame)          A dataframe containing the file to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
 
         """
 
@@ -51,7 +53,7 @@ class Dispatcher:
 
         df = self.prep_events(df)
         for operation in self.command_list:
-            df = operation.do_op(df)
+            df = operation.do_op(df, hed_schema=hed_schema, sidecar=sidecar)
         df = df.fillna('n/a')
         return df
 

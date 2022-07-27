@@ -26,16 +26,16 @@ class RemoveRowsOp(BaseOp):
         self.column_name = parameters["column_name"]
         self.remove_values = parameters["remove_values"]
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         """ Remove rows with the values indicated in the column.
 
         Args:
-            df (DataFrame) - The DataFrame whose rows are to be removed.
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
 
         Returns:
-            DataFrame - a new dataframe with the rows removed.
-
-        If column_name is not a column in df, df is just returned.
+            Dataframe - a new dataframe after processing.
 
         """
 

@@ -23,5 +23,5 @@ class BaseOp:
             if not isinstance(param_value, param_type):
                 raise TypeError("BadType" f"{param_value} has type {type(param_value)} not {param_type}")
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         return df

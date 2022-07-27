@@ -32,15 +32,16 @@ class RenameColumnsOp (BaseOp):
         else:
             self.error_handling = 'raise'
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         """ Rename columns as specified in column_mapping dictionary.
 
         Args:
-            df (DataFrame) - The DataFrame whose columns are to be renamed.
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
 
         Returns:
-            DataFrame - a new dataframe with columns renamed.
-
+            Dataframe - a new dataframe after processing.
 
         Raises:
             KeyError - when ignore_missing is false and column_mapping has columns not in df.

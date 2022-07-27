@@ -40,11 +40,13 @@ class FactorColumnOp(BaseOp):
                              f"The factor_names length {len(self.factor_names)} must be empty or equal" + \
                              f"to the factor_values length {len(self.factor_values)} .")
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         """ Create factor columns corresponding to values in a specified column.
 
         Args:
             df (DataFrame) - The DataFrame to be factored.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
 
         Returns:
             DataFrame - a new DataFrame with the factor columns appended.

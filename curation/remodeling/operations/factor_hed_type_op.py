@@ -20,8 +20,8 @@ class FactorHedTypeOp(BaseOp):
         self.type_values = parameters["type_values"]
         self.overwrite_existing = parameters["overwrite_existing"]
 
-    def do_op(self, df):
-        """ Factor.
+    def do_op(self, df, hed_schema=None, sidecar=None):
+        """ Factor columns based on HED type.
 
         Args:
             df (DataFrame) - The DataFrame whose rows are to be removed.
