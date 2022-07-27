@@ -19,13 +19,16 @@ class DeriveColumnsOp(BaseOp):
         self.derive_dict = {}
         print("to here")
 
-    def do_op(self, df):
-        """ Derive columns.
+    def do_op(self, df, hed_schema=None, sidecar=None):
+        """ Derive new columns from combinations of others..
 
         Args:
-            df (DataFrame) - The DataFrame whose rows are to be removed.
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
 
-        Raises:
+        Returns:
+            Dataframe - a new dataframe after processing.
 
         """
 

@@ -20,8 +20,19 @@ class AddStructureNumbersOp(BaseOp):
         self.trial_dict = {}
         print("to here")
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         # TODO: this is not written
+        """ Add structure numbers.
+
+        Args:
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
+
+        Returns:
+            Dataframe - a new dataframe after processing.
+
+        """
 
         df['trial'] = np.nan
         block_indices = tuple_to_range(get_indices(df, self.trial_dict['block']['marker_column'],
