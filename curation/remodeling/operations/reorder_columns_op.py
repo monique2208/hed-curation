@@ -30,11 +30,16 @@ class ReorderColumnsOp(BaseOp):
         self.ignore_missing = parameters['ignore_missing']
         self.keep_others = parameters['keep_others']
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         """ Reorder columns as specified in event dictionary.
 
-        Args:
-            df (DataFrame) - The DataFrame whose columns are to be reordered.
+       Args:
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
+
+        Returns:
+            Dataframe - a new dataframe after processing.
 
         Raises:
             ValueError - when ignore_missing is false and column_order has columns not in df.

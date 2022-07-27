@@ -39,11 +39,16 @@ class RemoveColumnsOp(BaseOp):
         else:
             self.error_handling = 'raise'
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         """ Remove indicated columns from a dataframe.
 
         Args:
-            df (DataFrame) - The DataFrame whose columns are to be removed.
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
+
+        Returns:
+            Dataframe - a new dataframe after processing.
 
         Raises:
             KeyError if ignore_missing is false and column not in df is to be removed.

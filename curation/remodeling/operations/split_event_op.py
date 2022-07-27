@@ -24,18 +24,19 @@ class SplitEventOp(BaseOp):
         self.new_events = parameters['new_events']
         self.remove_parent_event = parameters['remove_parent_event']
 
-    def do_op(self, df):
+    def do_op(self, df, hed_schema=None, sidecar=None):
         """ Split a row representing a particular event into multiple rows.
 
         Args:
-            df (DataFrame) - The DataFrame whose rows are to be split.
+            df (DataFrame) - The DataFrame to be remodeled.
+            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
 
         Returns:
-            DataFrame - A new dataframe with the operation performed on it.
+            Dataframe - a new dataframe after processing.
 
         Raises:
-            KeyError if ignore_missing is false and
-
+            TypeError - if bad onset or duration.
 
         """
 
