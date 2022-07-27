@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import numpy as np
 import unittest
-from curation import rename_columns
+from curation import RenameColumnsOp
 
 
 class Test(unittest.TestCase):
@@ -32,53 +32,78 @@ class Test(unittest.TestCase):
         pass
 
     def test_valid_no_extras_ignore_missing(self):
+        # Test when no extras and ignored.
         parms = json.loads(self.json_parms)
+        op = RenameColumnsOp(parms)
+        df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        df_new = rename_columns(df_test, parms)
+        df_new = op.do_op(df_test)
         renamed_columns = ['onset', 'duration', 'trial_type', 'stop_delay', 'response_time', 'response_accuracy',
                            'hand_used', 'image_sex']
-        new_columns = list(df_new.columns)
-        self.assertTrue(renamed_columns == new_columns, "rename_columns resulting df should have correct columns")
-        df_new_values = df_new.to_numpy()
-        df_values = df_test.to_numpy()
-        self.assertTrue(np.array_equal(df_values, df_new_values), "rename_columns does not change the values")
+        self.assertTrue(renamed_columns == list(df_new.columns),
+                        "rename_columns has correct columns when no extras and not ignored.")
+        self.assertTrue(np.array_equal(df_test.to_numpy(), df_new.to_numpy()),
+                        "rename_columns does not change the values when no extras and ignored")
+
+        # Test that df has not been changed by the op
+        self.assertTrue(list(df.columns) == list(df_test.columns),
+                        "rename_columns should not change the input df columns when no extras and ignore missing")
+        self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
+                        "rename_columns should not change the input df values when no extras and ignore missing")
 
     def test_valid_extras_ignore_missing(self):
+        # Test when extras but ignored
         parms = json.loads(self.json_parms)
-        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         parms["ignore_missing"] = True
         parms["column_mapping"]["random_column"] = "new_random_column"
-        df_new = rename_columns(df_test, parms)
+        op = RenameColumnsOp(parms)
+        df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
+        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
+        df_new = op.do_op(df_test)
         renamed_columns = ['onset', 'duration', 'trial_type', 'stop_delay', 'response_time', 'response_accuracy',
                            'hand_used', 'image_sex']
-        new_columns = list(df_new.columns)
-        self.assertTrue(renamed_columns == new_columns, "rename_columns resulting df should have correct columns")
-        df_new_values = df_new.to_numpy()
-        df_values = df_test.to_numpy()
-        self.assertTrue(np.array_equal(df_values, df_new_values), "rename_columns does not change the values")
+        self.assertTrue(renamed_columns == list(df_new.columns),
+                        "rename_columns resulting df should have correct columns when extras but ignored")
+        self.assertTrue(np.array_equal(df_test.to_numpy(), df_new.to_numpy()),
+                        "rename_columns does not change the values when extras but ignored")
+
+        # Test that df has not been changed by the op
+        self.assertTrue(list(df.columns) == list(df_test.columns),
+                        "rename_columns should not change the input df columns when extras and ignore missing")
+        self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
+                        "rename_columns should not change the input df values when extras and ignore missing")
 
     def test_valid_no_extras(self):
+        # Test when no extras but not ignored.
         parms = json.loads(self.json_parms)
-        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         parms["ignore_missing"] = False
-        df_new = rename_columns(df_test, parms)
+        op = RenameColumnsOp(parms)
+        df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
+        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
+        df_new = op.do_op(df_test)
         renamed_columns = ['onset', 'duration', 'trial_type', 'stop_delay', 'response_time', 'response_accuracy',
                            'hand_used', 'image_sex']
-        new_columns = list(df_new.columns)
-        self.assertTrue(renamed_columns == new_columns,
-                        "rename_columns resulting df should have correct columns when ignore_missing is false")
-        df_new_values = df_new.to_numpy()
-        df_values = df_test.to_numpy()
-        self.assertTrue(np.array_equal(df_values, df_new_values),
-                        "rename_columns does not change the values when ignore_missing is false")
+        self.assertTrue(renamed_columns == list(df_new.columns),
+                        "rename_columns resulting df should have correct columns when no extras not ignored")
+
+        self.assertTrue(np.array_equal(df_test.to_numpy(), df_new.to_numpy()),
+                        "rename_columns does not change the values when no extras not ignored")
+
+        # Test that df has not been changed by the op
+        self.assertTrue(list(df.columns) == list(df_test.columns),
+                        "rename_columns should not change the input df columns when no extras not ignored")
+        self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
+                        "rename_columns should not change the input df values when no extras not ignored")
 
     def test_invalid_extras(self):
+        # Test extras not ignored.
         parms = json.loads(self.json_parms)
-        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         parms["ignore_missing"] = False
         parms["column_mapping"]["random_column"] = "new_random_column"
+        op = RenameColumnsOp(parms)
+        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         with self.assertRaises(KeyError):
-            rename_columns(df_test, parms),
+            op.do_op(df_test)
 
 
 if __name__ == '__main__':

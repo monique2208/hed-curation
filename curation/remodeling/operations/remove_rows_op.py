@@ -1,24 +1,43 @@
-def remove_rows(df, parameters):
-    """ Removes rows with the values indicated in the columns.
+from curation.remodeling.operations.base_op import BaseOp
 
-    Args:
-        df (DataFrame) - The DataFrame whose rows are to be removed.
-        parameters (dict) - Dictionary of parameters.
+PARAMS = {
+    "command": "remove_rows",
+    "required_parameters": {
+        "column_name": str,
+        "remove_values": list
+    },
+    "optional_parameters": {}
+}
 
-    Raises:
 
-    Notes:
-        - column_name (str)     The name of column to be tested.
-        - remove_values (list)  The values to test for row removal.
+class RemoveRowsOp(BaseOp):
+    """
+        Remove dataframe rows that take one of the specified values in the specified column.
 
-    If column_name is not a column in df, df is just returned.
+        Notes: The required parameters are
+            - column_name (str)     The name of column to be tested.
+            - remove_values (list)  The values to test for row removal.
 
     """
-    # TODO: needs argument checking and unit testing
-    column = parameters["column_name"]
-    remove_values = parameters["remove_values"]
-    if column not in df.columns:
+
+    def __init__(self, parameters):
+        super().__init__(PARAMS["command"], PARAMS["required_parameters"], PARAMS["optional_parameters"])
+        self.check_parameters(parameters)
+        self.column_name = parameters["column_name"]
+        self.remove_values = parameters["remove_values"]
+
+    def do_op(self, df):
+        """ Remove rows with the values indicated in the column.
+
+        Args:
+            df (DataFrame) - The DataFrame whose rows are to be removed.
+
+        If column_name is not a column in df, df is just returned.
+
+        """
+
+        if self.column_name not in df.columns:
+            return df
+        for value in self.remove_values:
+            df = df.loc[df[self.column_name] != value, :]
         return df
-    for value in remove_values:
-        df = df.loc[df[column] != value, :]
-    return df
