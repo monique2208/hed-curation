@@ -27,8 +27,8 @@
                     "copy_columns": ["trial_type", "response_hand", "sex"]
                 }
             },
-			"add_trial_numbers": false,
-            "remove_trial_parent": true
+			"add_event_numbers": false,
+            "remove_event_parent": true
         }
     },
     {
@@ -36,7 +36,8 @@
         "description": "Order columns for the output",
         "parameters": {
             "column_order": ["onset", "duration", "trial_type", "event_type", "response_hand", "sex"],
-            "ignore_missing": true
+            "ignore_missing": true,
+            "keep_others": false
         }
     }
 ]

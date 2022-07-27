@@ -4,7 +4,7 @@ import pandas as pd
 # import curation.remapping.operations.ops as ops
 from curation.remodeling.util.bidsfiles import find_task_files, load_operations
 # import .operations.bidsfiles
-from curation.remodeling.operations.ops import run_operations
+from curation.remodeling.operations.dispatcher import run_operations
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Converts event files based on a json file specifying operations.")
