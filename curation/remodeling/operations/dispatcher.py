@@ -1,8 +1,9 @@
 import numpy as np
+import pandas as pd
 from curation.remodeling.operations.add_structure_column_op import AddStructureColumnOp
 from curation.remodeling.operations.add_structure_events_op import AddStructureEventsOp
 from curation.remodeling.operations.add_structure_numbers_op import AddStructureNumbersOp
-from curation.remodeling.operations.derive_columns_op import DeriveColumnsOp
+from curation.remodeling.operations.remap_columns import RemapColumnsOp
 from curation.remodeling.operations.factor_column_op import FactorColumnOp
 from curation.remodeling.operations.factor_hed_tags_op import FactorHedTagsOp
 from curation.remodeling.operations.factor_hed_type_op import FactorHedTypeOp
@@ -12,16 +13,17 @@ from curation.remodeling.operations.reorder_columns_op import ReorderColumnsOp
 from curation.remodeling.operations.remove_rows_op import RemoveRowsOp
 from curation.remodeling.operations.rename_columns_op import RenameColumnsOp
 from curation.remodeling.operations.split_event_op import SplitEventOp
+from hed.errors import HedFileError
 
 dispatch = {
     'add_structure_columns': AddStructureColumnOp,
     'add_structure_events': AddStructureEventsOp,
     'add_structure_numbers': AddStructureNumbersOp,
-    'derive_column': DeriveColumnsOp,
     'factor_column': FactorColumnOp,
     'factor_hed_tags': FactorHedTagsOp,
     'factor_hed_type': FactorHedTypeOp,
     'merge_events': MergeEventsOp,
+    'remap_columns': RemapColumnsOp,
     'remove_columns': RemoveColumnsOp,
     'remove_rows': RemoveRowsOp,
     'rename_columns': RenameColumnsOp,
@@ -43,7 +45,7 @@ class Dispatcher:
         """ Run the dispatcher commands on a dataframe.
 
         Args:
-            df (DataFrame)          A dataframe containing the file to be remodeled.
+            df (file-like or DataFrame)      The file or dataframe to be remodeled.
             hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
             sidecar (Sidecar or file-like)   Only needed for HED operations
 
@@ -51,6 +53,12 @@ class Dispatcher:
 
         # string to functions
 
+        if not isinstance(df, pd.DataFrame):
+            try:
+                df = pd.read_csv(df, sep='\t')
+            except Exception as ex:
+                raise HedFileError("BadDataFrameFile",
+                                   f"{str(df)} does not correspond to a valid tab-separated value file", "")
         df = self.prep_events(df)
         for operation in self.command_list:
             df = operation.do_op(df, hed_schema=hed_schema, sidecar=sidecar)
