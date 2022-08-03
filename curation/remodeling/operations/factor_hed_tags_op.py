@@ -3,22 +3,24 @@ from curation.remodeling.operations.base_op import BaseOp
 PARAMS = {
     "command": "factor_hed_tags",
     "required_parameters": {
-        "column_name": str,
-        "remove_values": list
+        "factor_name": str,
+        "remove_types": list,
+        "filter_queries": list,
+        "overwrite_existing": bool
     },
     "optional_parameters": {}
 }
 
 
 class FactorHedTagsOp(BaseOp):
+    """ Create factors based series of tag filters.
 
-    """
+        Notes: The required parameters are
+             - factor_name (str)       Column name of the created factor.
+             - remove_types (list)     Structural HED tags to be removed (usually *Condition-variable* and *Task*).
+             - filterc_queries (list)   Queries to be applied successively as filters.
+             - overwrite_existing (bool)  If true, existing an factor column is overwritten.
 
-            Notes:
-            - column_name (str)     The name of column to be tested.
-            - remove_values (list)  The values to test for row removal.
-
-        If column_name is not a column in df, df is just returned.
     """
 
     def __init__(self, parameters):
