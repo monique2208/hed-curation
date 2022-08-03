@@ -2,7 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 import unittest
-from curation import RemoveColumnsOp
+from curation import RemoveRowsOp
 
 
 class Test(unittest.TestCase):
@@ -18,9 +18,13 @@ class Test(unittest.TestCase):
         cls.sample_columns = ['onset', 'duration', 'trial_type', 'stop_signal_delay', 'response_time',
                               'response_accuracy', 'response_hand', 'sex']
 
+        cls.result_data = [[0.0776, 0.5083, 'go', 'n/a', 0.565, 'correct', 'right', 'female'],
+                           [9.5856, 0.5084, 'go', 'n/a', 0.45, 'correct', 'right', 'female'],
+                           [21.6103, 0.5083, 'go', 'n/a', 0.443, 'correct', 'left', 'male']]
+
         base_parameters = {
-            "remove_names": ["stop_signal_delay", "response_accuracy"],
-            "ignore_missing": True
+            "column_name": "trial_type",
+            "remove_values": ["succesful_stop", "unsuccesful_stop"]
         }
         cls.json_parms = json.dumps(base_parameters)
 
@@ -28,74 +32,61 @@ class Test(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_valid_no_extras_ignore_missing(self):
-        # Test when no extras but ignored.
+    def test_valid(self):
+        # Test when errors.
         parms = json.loads(self.json_parms)
-        op = RemoveColumnsOp(parms)
+        op = RemoveRowsOp(parms)
         df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_new = op.do_op(df_test)
-        remaining_columns = ['onset', 'duration', 'trial_type', 'response_time', 'response_hand', 'sex']
-        self.assertTrue(remaining_columns == list(df_new.columns), "remove_columns resulting df should have correct columns")
-        self.assertEqual(len(df_test), len(df_new),
-                         "remove_columns should not change the number of events when no extras and ignored")
-
+        self.assertTrue(list(df.columns) == list(df_new.columns),
+                        "remove_rows does not change the number of columns when all valid")
+        df_result = pd.DataFrame(self.result_data, columns=self.sample_columns)
+        self.assertTrue(np.array_equal(df_result.to_numpy(), df_new.to_numpy()),
+                        "remove_rows should have the right values after removal")
         # Test that df has not been changed by the op
         self.assertTrue(list(df.columns) == list(df_test.columns),
-                        "remove_columns should not change the input df columns when no extras and ignore missing")
+                        "remove_rows should not change the input df columns when all valid")
         self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
-                        "remove_columns should not change the input df values when no extras and ignore missing")
+                        "remove_rows should not change the input df values when all valid")
 
-    def test_valid_extras_ignore_missing(self):
-        # Test when extras, but ignored
+    def test_bad_values(self):
+        # Test when bad values included
         parms = json.loads(self.json_parms)
-        parms["remove_names"].append("face")
-        op = RemoveColumnsOp(parms)
+        parms["remove_values"] = ["succesful_stop", "unsuccesful_stop", "baloney"]
+        op = RemoveRowsOp(parms)
         df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_new = op.do_op(df_test)
-        remaining_columns = ['onset', 'duration', 'trial_type', 'response_time', 'response_hand', 'sex']
-        self.assertTrue(remaining_columns == list(df_new.columns),
-                        "remove_columns resulting df should have correct columns when extras ignored")
-        self.assertEqual(len(df), len(df_new),
-                         "remove_columns should not change the number of events when extras but ignored")
-
+        self.assertTrue(list(df.columns) == list(df_new.columns),
+                        "remove_rows does not change the number of columns when bad values included")
+        df_result = pd.DataFrame(self.result_data, columns=self.sample_columns)
+        self.assertTrue(np.array_equal(df_result.to_numpy(), df_new.to_numpy()),
+                        "remove_rows should have the right values after removal when bad values")
         # Test that df has not been changed by the op
         self.assertTrue(list(df.columns) == list(df_test.columns),
-                        "remove_columns should not change the input df columns when extras and ignore missing")
+                        "remove_rows should not change the input df columns when bad values")
         self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
-                        "remove_columns should not change the input df values when extras and ignore missing")
+                        "remove_rows should not change the input df values when bad values")
 
-    def test_valid_no_extras_no_ignore(self):
-        # Test when no extras but not ignored.
+    def test_bad_column_name(self):
+        # A bad column name should result in no change to df.
         parms = json.loads(self.json_parms)
-        parms["ignore_missing"] = False
-        op = RemoveColumnsOp(parms)
+        parms["column_name"] = "baloney"
+        op = RemoveRowsOp(parms)
         df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_new = op.do_op(df_test)
-        remaining_columns = ['onset', 'duration', 'trial_type', 'response_time', 'response_hand', 'sex']
-        self.assertTrue(remaining_columns == list(df_new.columns),
-                        "remove_columns resulting df should have correct columns when no extras but not ignored")
-        self.assertEqual(len(df), len(df_new),
-                         "remove_columns should not change the number of events when no extras but not ignored")
+        self.assertTrue(list(df.columns) == list(df_new.columns),
+                        "remove_rows does not change the number of columns when bad column")
 
+        self.assertTrue(np.array_equal(df.to_numpy(), df_new.to_numpy()),
+                        "remove_rows should have the right values after removal when bad column")
         # Test that df has not been changed by the op
         self.assertTrue(list(df.columns) == list(df_test.columns),
-                        "remove_columns should not change the input df columns when no extras and not ignored")
+                        "remove_rows should not change the input df columns when bad column")
         self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
-                        "remove_columns should not change the input df values when no extras and not ignored")
-
-    def test_invalid_extras_no_ignore(self):
-        # Test when extras and not ignored.
-        parms = json.loads(self.json_parms)
-        parms["remove_names"].append("face")
-        parms["ignore_missing"] = False
-        op = RemoveColumnsOp(parms)
-        df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        with self.assertRaises(KeyError):
-            op.do_op(df_test),
+                        "remove_rows should not change the input df values when bad column")
 
 
 if __name__ == '__main__':

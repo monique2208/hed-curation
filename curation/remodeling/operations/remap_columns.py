@@ -16,7 +16,11 @@ PARAMS = {
 
 
 class RemapColumnsOp(BaseOp):
+    """ Map combinations of values in m columns into a new combinations in n columns.
 
+        TODO: Allow wildcards
+
+    """
     def __init__(self, parameters):
         super().__init__(PARAMS["command"], PARAMS["required_parameters"], PARAMS["optional_parameters"])
         self.check_parameters(parameters)
