@@ -50,7 +50,6 @@ class Test(unittest.TestCase):
         parms["query_names"] = ["sensory", "response"]
         op = FactorHedTagsOp(parms)
         df_new = op.do_op(self.data_path, hed_schema=self.hed_schema, sidecar=self.json_path)
-        print("to here")
         self.assertEqual(len(df_new), 200, "factor_hed_tags_op length is correct")
         self.assertEqual(len(df_new.columns), 2, "factor_hed_tags_op has correct number of columns")
         self.assertEqual(list(df_new.columns), ["sensory", "response"],
