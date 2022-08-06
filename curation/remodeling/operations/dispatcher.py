@@ -106,7 +106,7 @@ class Dispatcher:
         for index, message in enumerate(messages):
             error_list[index] = f"Command[{message['index']}] has error:{message['error_type']}" + \
                 f" with error code:{message['error_code']} and error msg:{message['error_msg']}"
-        errors = (sep).join(error_list)
+        errors = sep.join(error_list)
         if title:
             return title + sep + errors
         return errors
