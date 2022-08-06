@@ -2,7 +2,9 @@ import pandas as pd
 import numpy as np
 from curation.remodeling.operations.base_op import BaseOp
 from hed import TabularInput
-from hed.tools import get_assembled_strings, VariableManager, VariableFactors
+from hed.tools import get_assembled_strings, HedVariableManager, HedTypeFactors
+
+# TODO: restricted factor values are not implemented yet.
 
 PARAMS = {
     "command": "factor_hed_type",
@@ -34,10 +36,10 @@ class FactorHedTypeOp(BaseOp):
         self.type_values = parameters["type_values"]
         self.overwrite_existing = parameters["overwrite_existing"]
         self.factor_encoding = parameters["factor_encoding"].lower()
-        if self.factor_encoding not in VariableFactors.ALLOWED_ENCODINGS:
+        if self.factor_encoding not in HedTypeFactors.ALLOWED_ENCODINGS:
             raise ValueError("BadFactorEncoding",
                              f"{self.factor_encoding} is not in the allowed encodings: " +
-                             f"{str(VariableFactors.ALLOWED_ENDCODINGS)}")
+                             f"{str(HedTypeFactors.ALLOWED_ENDCODINGS)}")
 
     def do_op(self, df, hed_schema=None, sidecar=None):
         """ Factor columns based on HED type.
@@ -63,10 +65,11 @@ class FactorHedTypeOp(BaseOp):
         df_list = [df]
         hed_strings = get_assembled_strings(input_data, hed_schema=hed_schema, expand_defs=False)
 
-        definitions = input_data.get_definitions(as_strings=False)
-        var_manager = VariableManager(hed_strings, hed_schema, definitions, variable_type=self.type_tag.lower())
+        def_mapper = input_data._def_mapper
+        var_manager = HedVariableManager(hed_strings, hed_schema, def_mapper)
+        var_manager.add_type_variable(self.type_tag.lower())
 
-        df_factors = var_manager.get_variable_factors(factor_encoding=self.factor_encoding)
+        df_factors = var_manager.get_factor_vectors(self.type_tag, [], factor_encoding=self.factor_encoding)
         if len(df_factors.columns) > 0:
             df_list.append(df_factors)
         df_new = pd.concat(df_list, axis=1)

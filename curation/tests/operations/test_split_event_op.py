@@ -24,37 +24,36 @@ class Test(unittest.TestCase):
                            [17.1021, 0.5083, 'unsuccesful_stop', 0.25, 0.633, 'correct', 'left', 'male'],
                            [21.6103, 0.5083, 'go', 'n/a', 0.443, 'correct', 'left', 'male']]
 
-        cls.split = [[0.0776, 0.5083, 'go', 'n/a', 0.565, 'correct', 'right', 'female', 1],
-                     [0.6426, 0, 'response', 'n/a', 'n/a', 'correct', 'right', 'female', 1],
-                     [5.5774, 0.5083, 'unsuccesful_stop', 0.2, 0.49, 'correct', 'right', 'female', 2],
-                     [5.7774, 0.5, 'stop_signal', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 2],
-                     [6.0674, 0, 'response', 'n/a', 'n/a', 'correct', 'right', 'female', 2],
-                     [9.5856, 0.5084, 'go', 'n/a', 0.45, 'correct', 'right', 'female', 3],
-                     [10.0356, 0, 'response', 'n/a', 'n/a', 'correct', 'right', 'female', 3],
-                     [13.5939, 0.5083, 'succesful_stop', 0.2, 'n/a', 'n/a', 'n/a', 'female', 4],
-                     [13.7939, 0.5, 'stop_signal', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 4],
-                     [17.1021, 0.5083, 'unsuccesful_stop', 0.25, 0.633, 'correct', 'left', 'male', 5],
-                     [17.3521, 0.5, 'stop_signal', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 5],
-                     [17.7351, 0, 'response', 'n/a', 'n/a', 'correct', 'left', 'male', 5],
-                     [21.6103, 0.5083, 'go', 'n/a', 0.443, 'correct', 'left', 'male', 6],
-                     [22.0533, 0, 'response', 'n/a', 'n/a', 'correct', 'left', 'male', 6]]
+        cls.split = [[0.0776, 0.5083, 'go', 'n/a', 0.565, 'correct', 'right', 'female'],
+                     [0.6426, 0, 'response', 'n/a', 'n/a', 'correct', 'right', 'female'],
+                     [5.5774, 0.5083, 'unsuccesful_stop', 0.2, 0.49, 'correct', 'right', 'female'],
+                     [5.7774, 0.5, 'stop_signal', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a'],
+                     [6.0674, 0, 'response', 'n/a', 'n/a', 'correct', 'right', 'female'],
+                     [9.5856, 0.5084, 'go', 'n/a', 0.45, 'correct', 'right', 'female'],
+                     [10.0356, 0, 'response', 'n/a', 'n/a', 'correct', 'right', 'female'],
+                     [13.5939, 0.5083, 'succesful_stop', 0.2, 'n/a', 'n/a', 'n/a', 'female'],
+                     [13.7939, 0.5, 'stop_signal', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a'],
+                     [17.1021, 0.5083, 'unsuccesful_stop', 0.25, 0.633, 'correct', 'left', 'male'],
+                     [17.3521, 0.5, 'stop_signal', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a'],
+                     [17.7351, 0, 'response', 'n/a', 'n/a', 'correct', 'left', 'male'],
+                     [21.6103, 0.5083, 'go', 'n/a', 0.443, 'correct', 'left', 'male'],
+                     [22.0533, 0, 'response', 'n/a', 'n/a', 'correct', 'left', 'male']]
         cls.sample_columns = ['onset', 'duration', 'trial_type', 'stop_signal_delay', 'response_time',
                               'response_accuracy', 'response_hand', 'sex']
         cls.split_columns = ['onset', 'duration', 'trial_type', 'stop_signal_delay', 'response_time',
-                             'response_accuracy', 'response_hand', 'sex', 'trial_number']
+                             'response_accuracy', 'response_hand', 'sex']
         base_parameters = {
             "anchor_column": "trial_type",
-            "event_numbers_column": "trial_number",
             "new_events": {
                 "response": {
                     "onset_source": ["response_time"],
                     "duration": [0],
-                    "copy_columns": ["response_accuracy", "response_hand", "sex", "trial_number"]
+                    "copy_columns": ["response_accuracy", "response_hand", "sex"]
                 },
                 "stop_signal": {
                     "onset_source": ["stop_signal_delay"],
                     "duration": [0.5],
-                    "copy_columns": ["trial_number"]
+                    "copy_columns": []
                 }
             },
             "remove_parent_event": False
@@ -96,7 +95,6 @@ class Test(unittest.TestCase):
                         "split_event should not change the input df columns when existing column anchor")
         self.assertTrue(np.array_equal(df.to_numpy(), df_test.to_numpy()),
                         "split_event should not change the input df values when existing column anchor")
-
 
 
 if __name__ == '__main__':
