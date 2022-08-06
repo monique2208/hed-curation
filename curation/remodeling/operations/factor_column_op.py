@@ -1,6 +1,7 @@
 from curation.remodeling.operations.base_op import BaseOp
 
-# TODO: Does not handle empty factor names correctly.
+# TODO: Does not handle empty factor names.
+# TODO: Does not handle optional return columns.
 
 PARAMS = {
     "command": "factor_column",
@@ -36,7 +37,7 @@ class FactorColumnOp(BaseOp):
         self.overwrite_existing = parameters['overwrite_existing']
         self.ignore_missing = parameters['ignore_missing']
         if self.factor_names and len(self.factor_values) != len(self.factor_names):
-            raise ValueError("FactorNameLenBad",
+            raise ValueError("FactorNamesLenBad",
                              f"The factor_names length {len(self.factor_names)} must be empty or equal" + \
                              f"to the factor_values length {len(self.factor_values)} .")
 

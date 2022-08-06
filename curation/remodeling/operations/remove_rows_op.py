@@ -11,14 +11,13 @@ PARAMS = {
 
 
 class RemoveRowsOp(BaseOp):
-    """
-        Remove dataframe rows that take one of the specified values in the specified column.
+    """ Remove dataframe rows that take one of the specified values in the specified column.
 
-        Notes: The required parameters are
-            - column_name (str)     The name of column to be tested.
-            - remove_values (list)  The values to test for row removal.
+         Notes: The required parameters are
+             - column_name (str)     The name of column to be tested.
+             - remove_values (list)  The values to test for row removal.
 
-    """
+     """
 
     def __init__(self, parameters):
         super().__init__(PARAMS["command"], PARAMS["required_parameters"], PARAMS["optional_parameters"])

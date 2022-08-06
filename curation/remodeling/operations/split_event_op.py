@@ -6,7 +6,6 @@ PARAMS = {
     "command": "split_events",
     "required_parameters": {
         "anchor_column": str,
-        "event_numbers_column": str,
         "new_events": dict,
         "remove_parent_event": bool
     },
@@ -20,7 +19,6 @@ class SplitEventOp(BaseOp):
         super().__init__(PARAMS["command"], PARAMS["required_parameters"], PARAMS["optional_parameters"])
         self.check_parameters(parameters)
         self.anchor_column = parameters['anchor_column']
-        self.event_numbers_column = parameters['event_numbers_column']
         self.new_events = parameters['new_events']
         self.remove_parent_event = parameters['remove_parent_event']
 
@@ -41,8 +39,6 @@ class SplitEventOp(BaseOp):
         """
 
         df_new = df.copy()
-        if self.event_numbers_column:
-            df_new[self.event_numbers_column] = df_new.index+1
 
         if self.anchor_column not in df_new.columns:
             df_new[self.anchor_column] = np.nan

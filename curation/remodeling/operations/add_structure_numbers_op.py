@@ -18,7 +18,6 @@ class AddStructureNumbersOp(BaseOp):
         super().__init__(PARAMS["command"], PARAMS["required_parameters"], PARAMS["optional_parameters"])
         self.check_parameters(parameters)
         self.trial_dict = {}
-        print("to here")
 
     def do_op(self, df, hed_schema=None, sidecar=None):
         # TODO: this is not written
