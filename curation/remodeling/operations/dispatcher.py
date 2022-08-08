@@ -3,11 +3,11 @@ import pandas as pd
 from curation.remodeling.operations.add_structure_column_op import AddStructureColumnOp
 from curation.remodeling.operations.add_structure_events_op import AddStructureEventsOp
 from curation.remodeling.operations.add_structure_numbers_op import AddStructureNumbersOp
-from curation.remodeling.operations.remap_columns import RemapColumnsOp
+from curation.remodeling.operations.remap_columns_op import RemapColumnsOp
 from curation.remodeling.operations.factor_column_op import FactorColumnOp
 from curation.remodeling.operations.factor_hed_tags_op import FactorHedTagsOp
 from curation.remodeling.operations.factor_hed_type_op import FactorHedTypeOp
-from curation.remodeling.operations.merge_events_op import MergeEventsOp
+from curation.remodeling.operations.merge_consecutive_op import MergeConsecutiveOp
 from curation.remodeling.operations.remove_columns_op import RemoveColumnsOp
 from curation.remodeling.operations.reorder_columns_op import ReorderColumnsOp
 from curation.remodeling.operations.remove_rows_op import RemoveRowsOp
@@ -22,7 +22,7 @@ dispatch = {
     'factor_column': FactorColumnOp,
     'factor_hed_tags': FactorHedTagsOp,
     'factor_hed_type': FactorHedTypeOp,
-    'merge_events': MergeEventsOp,
+    'merge_consecutive': MergeConsecutiveOp,
     'remap_columns': RemapColumnsOp,
     'remove_columns': RemoveColumnsOp,
     'remove_rows': RemoveRowsOp,
