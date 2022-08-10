@@ -70,6 +70,17 @@ class MergeConsecutiveOp(BaseOp):
 
     @staticmethod
     def _get_remove_groups(match_df, code_mask):
+        """ Return a list of same length as match_df with group numbers of consecutive items.
+
+        Args:
+            match_df (DataFrame): DataFrame containing columns to be matched must contain at least the base column.
+            code_mask (list):  List of the same length as match_df with the names of the
+
+        Returns:
+            list with group numbers set (starting at 1).
+
+        # TODO: Handle roundoff in rows for comparison.
+        """
         in_group = False
         remove_groups = [0] * len(match_df)
         group_count = 0
@@ -99,7 +110,6 @@ class MergeConsecutiveOp(BaseOp):
             max_anchor = df_new.loc[anchor, ["onset", "duration"]].sum(skipna=True).max()
             df_new.loc[anchor, "duration"] = max(max_group, max_anchor) - df_new.loc[anchor, "onset"]
 
-        print("to here")
 
         # in_group = False
         # start_group = -1

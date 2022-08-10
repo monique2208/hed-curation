@@ -8,9 +8,7 @@ PARAMS = {
     "required_parameters": {
         "column_name": str,
         "factor_values": list,
-        "factor_names": list,
-        "ignore_missing": bool,
-        "overwrite_existing": bool
+        "factor_names": list
     },
     "optional_parameters": {}
 }
@@ -23,8 +21,6 @@ class FactorColumnOp(BaseOp):
             - column_name (string)  The name of a column in the DataRrame.
             - factor_values (list)  Values in the column column_name to create factors for.
             - factor_names (list)   Names to use as the factor columns.
-            - overwrite_existing (boolean) If true, overwrite an existing factor column.
-            - ignore_missing (boolean) If true, a factor value not appear column column_name should not be factored.
 
     """
 
@@ -34,8 +30,6 @@ class FactorColumnOp(BaseOp):
         self.column_name = parameters['column_name']
         self.factor_values = parameters['factor_values']
         self.factor_names = parameters['factor_names']
-        self.overwrite_existing = parameters['overwrite_existing']
-        self.ignore_missing = parameters['ignore_missing']
         if self.factor_names and len(self.factor_values) != len(self.factor_names):
             raise ValueError("FactorNamesLenBad",
                              f"The factor_names length {len(self.factor_names)} must be empty or equal" + \
@@ -64,11 +58,6 @@ class FactorColumnOp(BaseOp):
         if len(factor_values) == 0:
             factor_values = df[self.column_name].unique()
             factor_names = [self.column_name + '.' + str(column_value) for column_value in factor_values]
-        if not self.overwrite_existing:
-            overlap = set(df.columns).intersection(set(factor_names))
-            if overlap:
-                raise ValueError("FactorColumnsExist",
-                                 f"Factor columns {str(overlap)} in dataframe and overwrite_existing is false")
 
         df_new = df.copy()
         for index, factor_value in enumerate(factor_values):
