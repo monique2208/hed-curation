@@ -28,12 +28,13 @@ class MergeConsecutiveOp(BaseOp):
         self.set_durations = parameters["set_durations"]
         self.ignore_missing = parameters["ignore_missing"]
 
-    def do_op(self, df, hed_schema=None, sidecar=None):
+    def do_op(self, dispatcher, df, name, sidecar=None):
         """ Merge consecutive events of the same type
 
         Args:
+            dispatcher (Dispatcher) - dispatcher object for context
             df (DataFrame) - The DataFrame to be remodeled.
-            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            name (str) - Unique identifier for the dataframe -- often the original file path.
             sidecar (Sidecar or file-like)   Only needed for HED operations
 
         Returns:
@@ -103,13 +104,11 @@ class MergeConsecutiveOp(BaseOp):
         remove_df = pd.DataFrame(remove_groups, columns=["remove"])
         max_groups = max(remove_groups)
         for index in range(max_groups):
-            x = remove_df["remove"] == index + 1
             df_group = df_new.loc[remove_df["remove"] == index + 1, ["onset", "duration"]]
             max_group = df_group.sum(axis=1, skipna=True).max()
             anchor = df_group.index[0] - 1
             max_anchor = df_new.loc[anchor, ["onset", "duration"]].sum(skipna=True).max()
             df_new.loc[anchor, "duration"] = max(max_group, max_anchor) - df_new.loc[anchor, "onset"]
-
 
         # in_group = False
         # start_group = -1

@@ -1,9 +1,8 @@
 import pandas as pd
-import numpy as np
 from curation.remodeling.operations.base_op import BaseOp
 from hed import TabularInput
 from hed.models import TagExpressionParser
-from hed.tools import get_assembled_strings, HedVariableManager
+from hed.tools import get_assembled_strings
 
 PARAMS = {
     "command": "factor_hed_tags",
@@ -47,16 +46,17 @@ class FactorHedTagsOp(BaseOp):
         for index, query in enumerate(self.queries):
             try:
                 next_query = TagExpressionParser(query)
-            except:
+            except Exception:
                 raise ValueError("BadQuery", f"Query [{index}]: {query} cannot be parsed")
             self.expression_parsers.append(next_query)
 
-    def do_op(self, df, hed_schema=None, sidecar=None):
+    def do_op(self, dispatcher, df, name, sidecar=None):
         """ Factor the column using HED tag queries
 
         Args:
-            df (DataFrame) - The DataFrame to be queried.
-            hed_schema (HedSchema or HedSchemaGroup) Only needed for HED operations.
+            dispatcher (Dispatcher) - dispatcher object for context
+            df (DataFrame) - The DataFrame to be remodeled.
+            name (str) - Unique identifier for the dataframe -- often the original file path.
             sidecar (Sidecar or file-like)   Only needed for HED operations
 
         Returns:
@@ -64,15 +64,16 @@ class FactorHedTagsOp(BaseOp):
 
         """
 
-        input_data = TabularInput(df, hed_schema=hed_schema, sidecar=sidecar)
-        hed_strings = get_assembled_strings(input_data, hed_schema=hed_schema, expand_defs=False)
+        input_data = TabularInput(df, hed_schema=dispatcher.hed_schema, sidecar=sidecar)
+        hed_strings = get_assembled_strings(input_data, hed_schema=dispatcher.hed_schema, expand_defs=False)
         df_factors = pd.DataFrame(0, index=range(len(hed_strings)), columns=self.query_names)
         for parse_ind, parser in enumerate(self.expression_parsers):
             df_factors[self.query_names[parse_ind]] = self.get_query_factor(hed_strings, parser)
 
         return df_factors
 
-    def get_query_factor(self, hed_strings, parser):
+    @staticmethod
+    def get_query_factor(hed_strings, parser):
         query_results = [0]*len(hed_strings)
         for index, next_item in enumerate(hed_strings):
             match = parser.search_hed_string(next_item)
