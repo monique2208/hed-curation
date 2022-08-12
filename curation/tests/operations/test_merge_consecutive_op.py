@@ -1,10 +1,9 @@
 import json
 import math
-
 import numpy as np
 import pandas as pd
 import unittest
-from curation import MergeConsecutiveOp
+from curation import MergeConsecutiveOp, Dispatcher
 
 
 class Test(unittest.TestCase):
@@ -39,6 +38,7 @@ class Test(unittest.TestCase):
                 "ignore_missing": True
             }
         cls.json_parms = json.dumps(base_parameters)
+        cls.dispatch = Dispatcher([])
 
     @classmethod
     def tearDownClass(cls):
@@ -52,7 +52,7 @@ class Test(unittest.TestCase):
         df = df.replace('n/a', np.NaN)
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_test = df_test.replace('n/a', np.NaN)
-        df_new = op.do_op(df_test)
+        df_new = op.do_op(self.dispatch, df_test, 'sample_data')
         self.assertTrue(list(df_new.columns) == list(df.columns),
                         "merge_consecutive should not change the number of columns")
         df_results = pd.DataFrame(self.result_data, columns=self.sample_columns)

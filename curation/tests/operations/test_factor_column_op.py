@@ -46,7 +46,7 @@ class Test(unittest.TestCase):
         df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_check = pd.DataFrame(self.factored, columns=self.sample_columns + parms['factor_names'])
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        df_new = op.do_op(df_test)
+        df_new = op.do_op(None, df_test, 'sample_data')
         self.assertEqual(len(df_check), len(df_new),
                          "factor_column should not change number of rows with ignore missing")
         self.assertEqual(len(df_check.columns), len(df.columns) + len(parms["factor_values"]),
@@ -69,7 +69,7 @@ class Test(unittest.TestCase):
         df = pd.DataFrame(self.sample_data, columns=self.sample_columns)
         df_check = pd.DataFrame(self.factored, columns=self.sample_columns + parms['factor_names'])
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        df_new = op.do_op(df_test)
+        df_new = op.do_op(None, df_test, 'sample_data')
         self.assertEqual(len(df_check), len(df_new),
                          "factor_column should not change number of rows with no extras and no ignore")
         self.assertEqual(len(df_check.columns), len(df.columns) + len(parms["factor_values"]),
@@ -95,7 +95,7 @@ class Test(unittest.TestCase):
         op = FactorColumnOp(parms)
         df_check["baloney"] = [0, 0, 0, 0, 0, 0]
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        df_new = op.do_op(df_test)
+        df_new = op.do_op(None, df_test, 'sample_data')
         self.assertEqual(len(df_check), len(df_new),
                          "factor_column should not change number of rows with extras and ignore missing")
         self.assertEqual(len(df_check.columns), len(df.columns) + len(parms["factor_values"]),
@@ -123,7 +123,7 @@ class Test(unittest.TestCase):
         op = FactorColumnOp(parms)
         df_check["baloney"] = [0, 0, 0, 0, 0, 0]
         df_test = pd.DataFrame(self.sample_data, columns=self.sample_columns)
-        df_new = op.do_op(df_test)
+        df_new = op.do_op(None, df_test, 'sample_data')
         self.assertEqual(len(df_check), len(df_new),
                          "factor_column should not change number of rows with extras and ignore missing")
         self.assertEqual(len(df_check.columns), len(df.columns) + len(parms["factor_values"]),

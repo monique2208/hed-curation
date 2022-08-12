@@ -28,11 +28,21 @@ class BaseOp:
             elif not isinstance(param_value, param_type):
                 raise TypeError("BadType" f"{param_value} has type {type(param_value)} not {param_type}")
 
-    def do_op(self, df, hed_schema=None, sidecar=None):
+    def do_op(self, dispatcher, df, name, sidecar=None):
+        """ Base class method to be overridden.
+
+        Args:
+            dispatcher (Dispatcher) - dispatcher object for context
+            df (DataFrame) - The DataFrame to be remodeled.
+            name (str) - Unique identifier for the dataframe -- often the original file path.
+            sidecar (Sidecar or file-like)   Only needed for HED operations
+
+        """
         return df
 
-    def _check_list_type(self, param_value, param_type):
-        for type in param_type:
-            if isinstance(param_value, type):
+    @staticmethod
+    def _check_list_type(param_value, param_type):
+        for this_type in param_type:
+            if isinstance(param_value, this_type):
                 return
         raise TypeError("BadType" f"{param_value} has type {type(param_value)} which is not in {str(param_type)}")
