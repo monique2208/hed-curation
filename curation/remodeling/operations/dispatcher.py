@@ -14,6 +14,7 @@ from curation.remodeling.operations.reorder_columns_op import ReorderColumnsOp
 from curation.remodeling.operations.remove_rows_op import RemoveRowsOp
 from curation.remodeling.operations.rename_columns_op import RenameColumnsOp
 from curation.remodeling.operations.split_event_op import SplitEventOp
+from curation.remodeling.operations.summarize_column_names_op import SummarizeColumnNamesOp
 from hed.errors import HedFileError
 
 dispatch = {
@@ -29,7 +30,8 @@ dispatch = {
     'remove_rows': RemoveRowsOp,
     'rename_columns': RenameColumnsOp,
     'reorder_columns': ReorderColumnsOp,
-    'split_event': SplitEventOp
+    'split_event': SplitEventOp,
+    'summarize_column_names': SummarizeColumnNamesOp
 }
 
 
@@ -48,25 +50,27 @@ class Dispatcher:
             self.hed_schema = None
         self.context_dict = {}
 
-    def run_operations(self, filename, sidecar=None):
+    def run_operations(self, filename, sidecar=None, verbose=False):
         """ Run the dispatcher commands on a file.
 
         Args:
             filename (str)      Full path of the file to be remodeled.
-            sidecar (Sidecar or file-like)   Only needed for HED operations
+            sidecar (Sidecar or file-like)   Only needed for HED operations.
+            verbose (bool)  If True, output informative messages during execution.
 
         """
 
         # string to functions
-
+        if verbose:
+            print(f"Reading {filename}...")
         try:
             df = pd.read_csv(filename, sep='\t')
         except Exception:
             raise HedFileError("BadDataFrameFile",
                                f"{str(filename)} does not correspond to a valid tab-separated value file", "")
         df = self.prep_events(df)
-        for operation in self.op_list:
-            df = operation.do_op(self, df, filename, sidecar=sidecar)
+        for operation in self.parsed_ops:
+            df = operation.do_op(self, df, filename, sidecar=sidecar, verbose=verbose)
         df = df.fillna('n/a')
         return df
 
@@ -85,6 +89,9 @@ class Dispatcher:
                 if "parameters" not in item:
                     raise KeyError("MissingParameters",
                                    f"Command {str(item)} does not have a parameters key")
+                if item["command"] not in dispatch:
+                    raise KeyError("CommandCanNotBeDispatched",
+                                   f"Command {item['command']} must be added to dispatch before it can be executed.")
                 new_command = dispatch[item["command"]](item["parameters"])
                 commands.append(new_command)
             except Exception as ex:
@@ -112,7 +119,7 @@ class Dispatcher:
             error_list[index] = f"Command[{message.get('index', None)}] " + \
                                 f"has error:{message.get('error_type', None)}" + \
                                 f" with error code:{message.get('error_code', None)} " + \
-                                f" and error msg:{message.get('error_msg', None)}"
+                                f"\n\terror msg:{message.get('error_msg', None)}"
         errors = sep.join(error_list)
         if title:
             return title + sep + errors
