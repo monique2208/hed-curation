@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from hed.schema import load_schema_version
@@ -16,6 +17,8 @@ from curation.remodeling.operations.remove_rows_op import RemoveRowsOp
 from curation.remodeling.operations.rename_columns_op import RenameColumnsOp
 from curation.remodeling.operations.split_event_op import SplitEventOp
 from curation.remodeling.operations.summarize_column_names_op import SummarizeColumnNamesOp
+from curation.remodeling.operations.summarize_column_values_op import SummarizeColumnValuesOp
+from curation.remodeling.operations.summarize_hed_type_op import SummarizeHedTypeOp
 from hed.errors import HedFileError
 
 dispatch = {
@@ -33,11 +36,14 @@ dispatch = {
     'rename_columns': RenameColumnsOp,
     'reorder_columns': ReorderColumnsOp,
     'split_event': SplitEventOp,
-    'summarize_column_names': SummarizeColumnNamesOp
+    'summarize_column_names': SummarizeColumnNamesOp,
+    'summarize_column_values': SummarizeColumnValuesOp,
+    'summarize_hed_type': SummarizeHedTypeOp
 }
 
 
 class Dispatcher:
+    REMODELING_SUMMARY_PATH = 'derivatives/remodel/summaries'
 
     def __init__(self, command_list, data_root=None, hed_versions=None):
         self.data_root = data_root
@@ -51,6 +57,9 @@ class Dispatcher:
         else:
             self.hed_schema = None
         self.context_dict = {}
+
+    def get_remodel_save_dir(self):
+        return os.path.realpath(os.path.join(self.data_root, Dispatcher.REMODELING_SUMMARY_PATH))
 
     def run_operations(self, filename, sidecar=None, verbose=False):
         """ Run the dispatcher commands on a file.
@@ -75,6 +84,23 @@ class Dispatcher:
             df = operation.do_op(self, df, filename, sidecar=sidecar, verbose=verbose)
         df = df.fillna('n/a')
         return df
+
+    def save_context(self, save_formats, verbose=True):
+        """ Save the summary files in the specified formats.
+
+        Args:
+            save_formats (list) list of formats [".txt", ."json"]
+            verbose (bool) If include additional details
+
+        The summaries are saved in the dataset derivatives/remodeling folder.
+
+        """
+        if not save_formats:
+            return
+        summary_path = self.get_remodel_save_dir()
+        os.makedirs(summary_path, exist_ok=True)
+        for context_name, context_item in self.context_dict.items():
+            context_item.save(summary_path, save_formats, verbose=verbose)
 
     @staticmethod
     def parse_commands(command_list):
